@@ -1,0 +1,24 @@
+schema: spec-driven
+context: |
+  Node.js 20+ ESM MCP-сервер (stdio). Пакет private, в npm не публикуется.
+  Три инструмента: jaicp_specs, jaicp_operations, jaicp_call.
+  Семь vendored OpenAPI: bot-channel, project, reporter, async, text-campaign, caila, calls.
+  Контракт одинаков для JAICP (app.jaicp.com) и Tovie Platform (platform.tovie.ai).
+  Обратная совместимость: уникальный operationId по-прежнему достаточно для jaicp_call.
+  Секреты не печатать. Тесты без сети и без реальных мутаций JAICP/Tovie.
+  Документация: сначала русский (README.md, CHANGELOG.md), затем английский (README.en.md, CHANGELOG.en.md).
+  NOTICE.md двуязычный, LICENSE остаётся английским MIT.
+rules:
+  proposal:
+    - Писать на русском
+    - Не обещать лицензию на JAICP или Tovie Platform
+  specs:
+    - Сохранять заголовки Requirement/Scenario и ключевые слова SHALL/WHEN/THEN
+    - Сценарии проверяемые без внешних сервисов, кроме явно помеченных smoke
+  tasks:
+    - Каждая задача содержит способ проверки
+operations:
+  apply:
+    guidance:
+      - Не вызывать mutating HTTP к JAICP/Tovie
+      - Не коммитить и не пушить без явной просьбы пользователя
