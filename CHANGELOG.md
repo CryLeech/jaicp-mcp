@@ -1,26 +1,28 @@
 # Changelog
 
-## 0.1.0 — first public test
+[Русский](CHANGELOG.md) · [English](CHANGELOG.en.md)
 
-Spec-driven MCP for JAICP. Three tools, seven official OpenAPI specs, write-guard, secret redaction.
+Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/), версии — [SemVer](https://semver.org/lang/ru/).
 
-### Specs
+## [Unreleased]
 
-- Bot channel, Project, Reporter, Async, Text campaign (`app.jaicp.com/api/api-gateway/static/specs/`)
-- CAILA Direct (`/cailapub/static/openapi/`)
-- Dialer / Calls (`/dialer/static/openapi/`)
+## [0.1.0] — 2026-09-07
 
-### Tools
+### Добавлено
 
-- `jaicp_specs`
-- `jaicp_operations`
-- `jaicp_call` (`confirm=true` required for mutating calls)
+- Три stdio-инструмента: `jaicp_specs`, `jaicp_operations`, `jaicp_call`
+- Семь официальных OpenAPI: bot-channel, project, reporter, async, text-campaign, CAILA, Dialer
+- Совместимость с JAICP и Tovie Platform через `JAICP_HOST`
+- Write-guard по метаданным операции, `confirm` и `JAICP_READ_ONLY`
+- Проверка required/defaults, дизамбигуация дублей `operationId` через `path`
+- JSON, form-urlencoded, multipart (base64) и бинарные ответы
+- Таймаут, запрет redirect, лимит размера, валидация host и path-параметров
+- Автономные тесты (`npm test`) и сверка YAML (`npm run check-specs`)
 
-### Auth
+### Безопасность
 
-Unified Bearer token for gateway APIs. Separate path tokens for CAILA and Dialer.
+- Редакция типичных секретов в выводе инструментов
+- Path-параметры не могут содержать `..` и разделители сегментов
 
-### Safety
-
-- Mutating HTTP (and Dialer `addPhone` GET) blocked unless `confirm=true`
-- Tokens in URLs and fields like `accessToken` are redacted in tool output
+[Unreleased]: https://github.com/CryLeech/jaicp-mcp/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/CryLeech/jaicp-mcp/releases/tag/v0.1.0

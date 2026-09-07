@@ -1,7 +1,7 @@
 {
   "name": "jaicp-mcp",
   "version": "0.1.0",
-  "description": "MCP server for JAICP / Conversational Cloud HTTP APIs, driven by official OpenAPI specs",
+  "description": "MCP server for JAICP and Tovie Platform HTTP APIs, driven by official OpenAPI specs",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -13,15 +13,20 @@
     "vendor/specs",
     "scripts",
     "README.md",
+    "README.en.md",
     "LICENSE",
     "CHANGELOG.md",
+    "CHANGELOG.en.md",
     "NOTICE.md",
     ".env.example"
   ],
   "scripts": {
     "start": "node src/server.mjs",
     "ops": "node src/openapi.mjs --print",
-    "sync-specs": "pwsh -File scripts/sync-specs.ps1"
+    "test": "node --test test/**/*.test.mjs",
+    "check": "node src/openapi.mjs --print && node --test test/**/*.test.mjs",
+    "sync-specs": "pwsh -File scripts/sync-specs.ps1",
+    "check-specs": "pwsh -File scripts/check-specs.ps1"
   },
   "engines": {
     "node": ">=20"
@@ -29,6 +34,7 @@
   "keywords": [
     "mcp",
     "jaicp",
+    "tovie",
     "just-ai",
     "conversational-cloud"
   ],
