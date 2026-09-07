@@ -1,0 +1,874 @@
+openapi: 3.0.1
+
+info:
+  title: Project API
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:9860
+    description: Development server
+
+paths:
+  # *******************************************************************************
+  #                                  Project
+  # *******************************************************************************
+  /api/v1/projects:
+    post:
+      summary: Create bot project
+      operationId: create
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/authorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateDto'
+      responses:
+        '200':
+          description: Bot project successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_WRITE
+    get:
+      summary: Get all bot projects
+      operationId: getAll
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/authorizationHeader'
+        - $ref: '#/components/parameters/pageParamOptional'
+        - $ref: '#/components/parameters/sizeParamOptional'
+        - $ref: '#/components/parameters/projectListSortingFieldParamOptional'
+        - $ref: '#/components/parameters/projectListSortingOrderParamOptional'
+      responses:
+        '200':
+          description: Bot projects successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListDto'
+      x-security-authority: PROJECTS_READ
+
+  /api/v1/projects/{id}:
+    get:
+      summary: Get bot project by ID
+      operationId: getById
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot project successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_READ
+    delete:
+      summary: Delete bot project
+      operationId: delete
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot project successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_WRITE
+    put:
+      summary: Update bot project
+      operationId: update
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/authorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateDto'
+      responses:
+        '200':
+          description: Bot project successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_WRITE
+
+  /api/v1/projects/{id}/clone:
+    post:
+      summary: Clone bot project
+      operationId: clone
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/nameParamRequired'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot project successfully cloned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_WRITE
+
+  /api/v1/projects/{projectShortName}/by-project-short-name:
+    get:
+      summary: Get bot project by short name
+      operationId: getByProjectShortName
+      tags:
+        - Project
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot project successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDto'
+      x-security-authority: PROJECTS_READ
+
+components:
+  parameters:
+
+    ### Header parameters ###
+    authorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+
+    productHeader:
+      name: product
+      in: header
+      description: Product type
+      required: false
+      schema:
+        type: string
+
+    ### Path parameters ###
+    id:
+      name: id
+      in: path
+      description: Object ID.
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    botId:
+      name: botId
+      in: path
+      description: Bot ID.
+      required: true
+      schema:
+        type: string
+
+    projectShortName:
+      name: projectShortName
+      in: path
+      description: Project short name.
+      required: true
+      schema:
+        type: string
+
+    ### Query parameters ###
+
+    nameParamRequired:
+      in: query
+      name: name
+      description: Name.
+      required: true
+      schema:
+        type: string
+
+
+    channelTypeParamOptional:
+      name: channelType
+      in: query
+      description: Channel type.
+      required: false
+      schema:
+        $ref: '#/components/schemas/ChannelType'
+
+    projectListSortingFieldParamOptional:
+      name: sortingField
+      in: query
+      description: Sort projects by this field.
+      required: false
+      schema:
+        $ref: '#/components/schemas/ProjectListSortingField'
+
+    projectListSortingOrderParamOptional:
+      name: sortingOrder
+      in: query
+      description: Sort order.
+      required: false
+      schema:
+        $ref: '#/components/schemas/ProjectListSortingOrder'
+
+    pageParamOptional:
+      in: query
+      name: page
+      description: Page number.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+
+    sizeParamOptional:
+      in: query
+      name: size
+      description: Maximum number of items per page.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 20
+
+  schemas:
+
+    ### DTOs ###
+
+    ProjectCreateDto:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Project name.
+        defaultBranch:
+          type: string
+          default: "master"
+          description: Default project branch.
+        contentDirectory:
+          type: string
+          default: "."
+          description: Directory where the project data is stored.
+        gitRepository:
+          $ref: '#/components/schemas/GitRepositoryConnectionDto'
+        gitIntegration:
+          $ref: '#/components/schemas/GitIntegrationDto'
+        template:
+          $ref: '#/components/schemas/ProjectTemplateDto'
+        projectSettingsData:
+          $ref: '#/components/schemas/ProjectSettingsDto'
+        cleanup:
+          $ref: '#/components/schemas/CleanupDto'
+        botChannelsType:
+          $ref: '#/components/schemas/BotChannelsType'
+        telephonyParams:
+          $ref: '#/components/schemas/TelephonyParamsDto'
+        jaicf:
+          $ref: '#/components/schemas/JaicfParamsDto'
+
+
+    ProjectUpdateDto:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        projectSettingsData:
+          $ref: '#/components/schemas/ProjectSettingsDto'
+
+    CleanupDto:
+      properties:
+        dialogs:
+          type: boolean
+          default: false
+          description: Specifies if dialogs must be cleared.
+        olderThenDays:
+          type: integer
+          description: Number of days to store dialogs.
+
+    ProjectTemplateDto:
+      description: Template for the project.
+      properties:
+        name:
+          type: string
+          description: "Name of the project template. Examples: `zb-echo-cailapub-template_ru`, `zb-cailapub-template_ru`, `zb-jgraph-cailapub-template_ru`, `zb-faq-cailapub-template_ru`."
+
+    GitRepositoryConnectionDto:
+      type: object
+      description: Git integration. Uses login and token for authentication.
+      properties:
+        url:
+          type: string
+          description: Git repository URL.
+        login:
+          type: string
+          description: Git login.
+        password:
+          type: string
+          description: Token for repository access.
+        authType:
+          $ref: '#/components/schemas/RepositoryAuthType'
+        justAiKey:
+          type: string
+          description: protection of repositories with guest access
+
+    GitRepositoryConnectionReadDto:
+      type: object
+      description: Git integration. Uses login and token for authentication.
+      properties:
+        url:
+          type: string
+          description: Git repository URL.
+        login:
+          type: string
+          description: Git login.
+        authType:
+          $ref: '#/components/schemas/RepositoryAuthType'
+
+    GitIntegrationDto:
+      description: Git integration. Uses OAuth application.
+      properties:
+        name:
+          type: string
+          description: Integration UUID.
+        repositoryName:
+          type: string
+          description: Repository name in the Git account.
+        workspaceId:
+          type: string
+          description: Bitbucket workspace ID. The value is null for other services.
+        projectId:
+          type: string
+          description: Bitbucket project ID. The value is null for other services.
+        repositoryUrl:
+          type: string
+          description: Git repository URL.
+        repositoryIsPrivate:
+          type: boolean
+          description: Specifies if the repository is private.
+
+    TelephonyParamsDto:
+      description: Project settings for telephony.
+      properties:
+        callsBotChannelsType:
+          $ref: '#/components/schemas/CallsBotChannelType'
+        voiceUniqueName:
+          type: string
+          description: Name of the voice used in calls.
+
+    JaicfParamsDto:
+      type: object
+      properties:
+        isJaicfProject:
+          type: boolean
+          description: is the project jaicf or not
+        webHookUrl:
+          type: string
+          description: callback url
+        externalBotToken:
+          type: string
+          description: external token for jaicf channels
+
+    ProjectDto:
+      required:
+        - id
+        - name
+        - shortName
+        - botChannelsType
+        - tagLabels
+        - botChannels
+        - product
+        - repository
+        - lastModificationTime
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Project ID.
+        name:
+          type: string
+          description: Project name.
+        description:
+          type: string
+          description: Project description
+        shortName:
+          type: string
+          description: Project short name.
+        botChannelsType:
+          $ref: '#/components/schemas/BotChannelsType'
+        lastModificationTime:
+          type: string
+          format: date-time
+          description: Date and time of the last project modification.
+        tagLabels:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagLabelDto'
+        language:
+          $ref: '#/components/schemas/Locale'
+        repository:
+          $ref: '#/components/schemas/GitRepositoryConnectionReadDto'
+        defaultBranch:
+          type: string
+          description: Default project branch.
+        contentDirectory:
+          type: string
+          description: Directory where the project data is stored.
+        operatorChannelId:
+          type: string
+          description: Agent channel ID for dialog switch. If set, then this ID will be used for all channels.
+        reportParameters:
+          type: string
+        projectCategory:
+          $ref: '#/components/schemas/ProjectCategory'
+        cleanup:
+          $ref: '#/components/schemas/CleanupDto'
+        environment:
+          $ref: '#/components/schemas/Environment'
+        templateName:
+          type: string
+          description: Name of the project template.
+        warnings:
+          type: array
+          description: Information about GitHub integration and token updates.
+          items:
+            $ref: '#/components/schemas/ProjectWarning'
+        telephonyParams:
+          $ref: '#/components/schemas/TelephonyParamsDto'
+        projectSettingsData:
+          $ref: '#/components/schemas/ProjectSettingsDto'
+        botChannels:
+          type: array
+          description: IDs of bot channels linked to the project.
+          items:
+            type: object
+            required:
+              - id
+              - type
+            description: id of the bot channel and type
+            properties:
+              id:
+                type: integer
+                format: int64
+              channelType:
+                $ref: '#/components/schemas/ChannelType'
+        jaicf:
+          $ref: '#/components/schemas/JaicfParamsDto'
+        product:
+          type: string
+        resteriskAcceptIncoming:
+          type: boolean
+
+    ProjectListDto:
+      properties:
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectDto'
+        paging:
+          $ref: '#/components/schemas/Pagination'
+
+    Pagination:
+      required:
+        - pageNum
+        - pageSize
+        - totalCount
+      properties:
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+          format: int64
+
+    ProjectSettingsDto:
+      type: object
+      properties:
+        language:
+          type: string
+          default: "ru"
+          description: NLU language.
+        spellingCorrection:
+          type: boolean
+          default: false
+          description: Specifies if spelling correction is enabled.
+        classificationAlgorithm:
+          $ref: '#/components/schemas/ClassificationAlgorithm'
+        timezone:
+          type: string
+        extendedSettings:
+          $ref: '#/components/schemas/ExtendedProjectSettings'
+        shared:
+          type: boolean
+          default: false
+          description: Specifies if the project is shared.
+        validation:
+          $ref: '#/components/schemas/SoftValidationSettingsData'
+
+    SoftValidationSettingsData:
+      type: object
+      properties:
+        phraseValidationEnabled:
+          type: boolean
+          default: false
+        answerValidationEnabled:
+          type: boolean
+          default: false
+        phraseValidationThreshold:
+          type: number
+          format: float
+          default: 0.5
+        answerValidationThreshold:
+          type: number
+          format: float
+          default: 0.5
+
+    ExtendedProjectSettings:
+      type: object
+      properties:
+        patternsEnabled:
+          type: boolean
+        tokenizerEngine:
+          type: string
+        stsSettings:
+          $ref: "#/components/schemas/StsSettings"
+        cnnSettings:
+          $ref: "#/components/schemas/CnnSettings"
+        classicMLSettings:
+          $ref: "#/components/schemas/ClassicMLSettings"
+        logregSettings:
+          $ref: "#/components/schemas/LogregSettings"
+        dictionaryAutogeneration:
+          type: boolean
+        luceneAnalyzer:
+          type: string
+        shareIntents:
+          type: boolean
+        shareEntities:
+          type: boolean
+        disableHieroglyphicsTokenization:
+          type: boolean
+        allowedPatterns:
+          type: array
+          items:
+            type: string
+        useShared:
+          type: boolean
+        zflPatternsEnabled:
+          type: boolean
+        zflExtractorTimeLimit:
+          type: integer
+          format: int64
+        modelId:
+          type: string
+        modelIdForExternalUsage:
+          type: string
+        mlp:
+          $ref: "#/components/schemas/MlpSettings"
+        externalNluSettings:
+          $ref: "#/components/schemas/ExternalNluSettings"
+
+    TagLabelDto:
+      description: Project tag.
+      required:
+        - id
+        - tagName
+      properties:
+        id:
+          type: integer
+          format: int64
+        tagName:
+          type: string
+
+    StsSettings:
+      type: object
+      description: STS classifier settings.
+      properties:
+        exactMatch:
+          type: number
+          format: float
+        patternMatch:
+          type: number
+          format: float
+
+    CnnSettings:
+      type: object
+      description: Deep Learning classifier settings.
+      properties:
+        lang:
+          type: string
+        kernel_sizes:
+          type: array
+          items:
+            type: integer
+
+    ClassicMLSettings:
+      type: object
+      description: Classic ML classifier settings.
+      properties:
+        C:
+          type: integer
+        lang:
+          type: string
+
+    LogregSettings:
+      type: object
+      description: LogReg classifier settings.
+      properties:
+        C:
+          type: integer
+
+    MlpSettings:
+      type: object
+      properties:
+        restUrl:
+          type: string
+        mlpAccessKey:
+          type: string
+        noTraining:
+          type: boolean
+        trainingModel:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+        derivedModel:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+        nerModels:
+          type: array
+          items:
+            type: object
+            properties:
+              account:
+                type: string
+              model:
+                type: string
+              config:
+                type: object
+                additionalProperties:
+                  type: string
+        markup:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+            config:
+              type: object
+              additionalProperties:
+                type: string
+
+    ExternalNluSettings:
+      type: object
+      properties:
+        nluProviderSettings:
+          description: External NLU settings.
+          type: object
+          properties:
+            markup:
+              $ref: '#/components/schemas/NluActionDescription'
+            ner:
+              $ref: '#/components/schemas/NluActionDescription'
+            classification:
+              $ref: '#/components/schemas/NluActionDescription'
+        language:
+          type: string
+          description: Language for external NLU. If not set, the project language is used.
+        nluActionAdditionalProperties:
+          type: object
+          properties:
+            markup:
+              type: object
+              description: Parameters for external NLU markup request. Passed to the external NLU service.
+              additionalProperties:
+                type: string
+            ner:
+              type: object
+              description: Parameters for external NLU NER request. Passed to the external NLU service.
+              additionalProperties:
+                type: string
+            classification:
+              type: object
+              properties:
+                modelId:
+                  type: string
+                  description: Classifier model ID. If not set, `default` is used.
+                classifierName:
+                  type: string
+                  description: Classifier name. If not set, `default` is used.
+                properties:
+                  type: object
+                  description: Parameters for external NLU classification request. Passed to the external NLU service.
+                  additionalProperties:
+                    type: string
+
+    NluActionDescription:
+      properties:
+        nluType:
+          type: string
+          description: NLU type.
+          enum:
+            - caila # deprecated
+            - internal
+            - external
+            - mlp
+        url:
+          type: string
+          description: URL of the external NLU provider. Required if `nluType` is set to `external`.
+
+
+    #Enums
+
+
+    ProjectListSortingField:
+      type: string
+      description: Sort projects by this field.
+      default: CREATION_DATE
+      enum:
+        - CREATION_DATE
+        - LAST_MODIFICATION_DATA
+        - SHORT_NAME
+
+    ProjectListSortingOrder:
+      type: string
+      description: Sort order.
+      default: ASC
+      enum:
+        - ASC
+        - DESC
+
+    ClassificationAlgorithm:
+      type: string
+      description: The algorithm used for classification.
+      default: sts
+      enum:
+        - sts
+        - regression
+        - deeplearning
+        - logreg
+        - transformer
+
+    RepositoryAuthType:
+      type: string
+      enum:
+        - PERSONAL_USER
+        - GUEST_USER
+
+    ProjectCategory:
+      type: string
+      enum:
+        - GAMES
+        - NEWS
+        - E_COMMERCE
+        - SUPPORT
+        - SMART_HOME
+        - PRODUCTIVITY
+        - OTHER
+
+    ChannelType:
+      type: string
+      description: Channel type.
+      enum:
+        - AZURE
+        - TELEGRAM
+        - FACEBOOK
+        - INSTAGRAM
+        - VIBER
+        - CHAT_API
+        - CHAT_WIDGET
+        - TEST_WIDGET
+        - YANDEX
+        - MARUSIA
+        - SBER
+        - RESTERISK
+        - SLACK
+        - VK
+        - LIVETEX_PROMPTER
+        - PROMPTER_API
+        - INBOUND_LIVETEX
+        - ZENDESK_PROMPTER
+        - WECHAT
+        - ZENDESK
+        - WEBIM
+        - INCOMING_WEBIM2
+        - ZOPIM
+        - VOICE_TEST_WIDGET
+        - GOOGLE
+        - ALEXA
+        - ZENBOX
+        - BITRIX
+        - CHAT2DESK
+        - ODNOKLASSNIKI
+        - NEXMO
+        - I_DIGITAL
+        - THREADS
+        - INCOMING_JIVOSITE
+        - JAICP_ALEXA
+        - DIALOGFLOW
+        - WAZZUP
+        - WHATSAPP
+        - EDNA_PLATFORM
+        - MATTERMOST
+
+    BotChannelsType:
+      type: string
+      description: Types of bot channels in the project.
+      enum:
+        - CHAT_BOT
+        - CALLS_BOT
+
+    CallsBotChannelType:
+      type: string
+      enum:
+        - DIALER
+        - IVR
+
+    ProjectWarning:
+      type: string
+      enum:
+        - GITHUB_WRONG_ACCOUNT_TOKEN
+
+    # Stubs
+
+    Environment:
+      description: Project hosting type.
+      type: string
+      enum:
+        - JAICP_CLOUD
+        - EXTERNAL
+
+    Locale:
+      type: string
+      enum:
+        - RU
+        - EN
+        - CN

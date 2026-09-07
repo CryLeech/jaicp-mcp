@@ -1,0 +1,1803 @@
+openapi: 3.0.1
+
+info:
+  title: Bot channel API
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:9860
+    description: Development server
+
+paths:
+   # *******************************************************************************
+  #                                  Channel
+  # *******************************************************************************
+
+  /api/v1/bot-channels:
+    get:
+      summary: Get bot channels
+      operationId: getAll
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/projectIdParamRequired'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot channels successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelListDto'
+    post:
+      summary: Create bot channel
+      operationId: create
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/projectIdParamRequired'
+        - $ref: '#/components/parameters/authorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotChannelCreateDto'
+      responses:
+        '200':
+          description: Bot channel successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelDto'
+
+  /api/v1/bot-channels/{id}:
+    get:
+      summary: Get bot channel
+      operationId: getById
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot channel successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelDto'
+    put:
+      summary: Update bot channel
+      operationId: update
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/authorizationHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotChannelUpdateDto'
+      responses:
+        '200':
+          description: Bot channel successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelDto'
+    delete:
+      summary: Delete bot channel
+      operationId: delete
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot channel successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelDto'
+
+  /api/v1/bot-channels/{botId}/by-bot-id:
+    get:
+      summary: Get bot channel by bot ID
+      operationId: getByBotId
+      tags:
+        - BotChannel
+      parameters:
+        - $ref: '#/components/parameters/botId'
+        - $ref: '#/components/parameters/authorizationHeader'
+      responses:
+        '200':
+          description: Bot channel successfully received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotChannelDto'
+
+  /api/v1/async/bot-channels/deploy:
+    post:
+      summary: Create task to deploy bot channel
+      operationId: deploy
+      tags:
+        - BotChannel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployBotChannelDto'
+      responses:
+        '200':
+          description: Bot channel successfully deployed
+          headers:
+            Z-Request-id:
+              schema:
+                type: string
+            Z-Request-time:
+              schema:
+                type: string
+                format: date-time
+
+components:
+  parameters:
+
+    ### Header parameters ###
+    authorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+
+    ### Path parameters ###
+    id:
+      name: id
+      in: path
+      description: Object ID.
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    botId:
+      name: botId
+      in: path
+      description: Bot ID.
+      required: true
+      schema:
+        type: string
+
+    projectShortName:
+      name: projectShortName
+      in: path
+      description: Project short name.
+      required: true
+      schema:
+        type: string
+
+    ### Query parameters ###`
+
+
+    projectIdParamRequired:
+      name: projectId
+      in: query
+      description: Project ID.
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  schemas:
+
+    ### DTOs ###
+
+    ErrorDto:
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: "Error short name in the format: `service.assertion_type.error_short_description`."
+        message:
+          type: string
+          description: Full error message.
+        args:
+          $ref: "#/components/schemas/JsonNode"
+
+    BotChannelCreateDto:
+      required:
+        - channelType
+      properties:
+        channelType:
+          $ref: '#/components/schemas/ChannelType'
+        accessToken:
+          type: string
+          description: Channel token.
+        channelName:
+          type: string
+          description: Channel name.
+        repositoryReference:
+          $ref: '#/components/schemas/BotChannelRepositoryReferenceParamsDto'
+        isAutoDeploy:
+          type: boolean
+          description: Specifies if automatic bot deployment is enabled.
+          default: true
+        operatorChannelId:
+          type: string
+          description: Agent channel ID for dialog switch.
+        chatWidgetParams:
+          $ref: '#/components/schemas/BotChannelChatWidgetParamsDto'
+        telephonyParams:
+          $ref: '#/components/schemas/BotChannelTelephonyParamsDto'
+        customData:
+          $ref: '#/components/schemas/BotChannelCustomData'
+        jaicfChannelId:
+          type: string
+          description: JAICF channel ID.
+
+    BotChannelUpdateDto:
+      required:
+        - accessToken
+        - channelName
+      properties:
+        accessToken:
+          type: string
+          description: Channel token.
+        channelName:
+          type: string
+          description: Channel name.
+        repositoryReference:
+          $ref: '#/components/schemas/BotChannelRepositoryReferenceParamsDto'
+        isAutoDeploy:
+          type: boolean
+          description: Specifies if automatic bot deployment is enabled.
+        operatorChannelId:
+          type: string
+          description: Agent channel ID for dialog switch.
+        chatWidgetParams:
+          $ref: '#/components/schemas/BotChannelChatWidgetParamsDto'
+        telephonyParams:
+          $ref: '#/components/schemas/BotChannelTelephonyParamsDto'
+        customData:
+          $ref: '#/components/schemas/BotChannelCustomData'
+        isBlock:
+          type: boolean
+          description: Specifies if the channel is blocked.
+
+    BotChannelListDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BotChannelDto'
+
+    BotChannelDto:
+      required:
+        - id
+        - botId
+        - channelName
+        - channelType
+        - isAutoDeploy
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Channel ID.
+        botId:
+          type: string
+          description: Bot ID.
+        channelName:
+          type: string
+          description: Channel name.
+        channelType:
+          $ref: '#/components/schemas/ChannelType'
+        accessToken:
+          type: string
+          description: Channel token.
+        operatorChannelId:
+          type: string
+          description: Agent channel ID for dialog switch.
+        isRemoved:
+          type: boolean
+          description: Specifies if the channel is deleted.
+        isAutoCreated:
+          type: boolean
+          description: Specifies if the channel is auto-created.
+        isBlocked:
+          type: boolean
+          description: Specifies if the channel is blocked.
+        creationTime:
+          type: string
+          format: date-time
+          description: Date and time when the channel was created.
+        modificationTime:
+          type: string
+          format: date-time
+          description: Date and time when the channel was last modified.
+        createdBy:
+          type: integer
+          format: int64
+          description: User ID of the channel creator.
+        repositoryReference:
+          $ref: '#/components/schemas/BotChannelRepositoryReferenceParamsDto'
+        telephonyParams:
+          $ref: '#/components/schemas/BotChannelTelephonyParamsDto'
+        isAutoDeploy:
+          type: boolean
+          description: Specifies if automatic bot deployment is enabled.
+        chatWidgetScriptUrl:
+          type: string
+          description: URL of the script for chat widget integration.
+        chatWidgetParams:
+          $ref: '#/components/schemas/BotChannelChatWidgetParamsDto'
+        webhookUrl:
+          type: string
+          description: URL for webhook callbacks, for example, for Chat API.
+        customData:
+          type: string
+          description: Custom data, may include `appId`, `secret`, `testMode`.
+        jaicfChannelId:
+          type: string
+          description: JAICF channel ID.
+
+    BotChannelChatWidgetParamsDto:
+      type: object
+      properties:
+        theme:
+          type: string
+          description: Chat widget theme.
+          default: defaultv3
+          example: defaultv2, defaultv3, lancomev2, testconsole
+        position:
+          type: string
+          description: Chat widget position.
+          default: right
+          example: right
+        percentage:
+          type: integer
+          format: int64
+          description: Size of the chat widget as a percentage of the default size.
+          default: 100
+          example: 100
+        widgetOptions:
+          $ref: '#/components/schemas/ChatWidgetOptionsDto'
+
+    BotChannelTelephonyParamsDto:
+      type: object
+      properties:
+        sipTrunkId:
+          type: integer
+          format: int64
+          description: The ID of the SIP trunk.
+        recordingEnabled:
+          type: boolean
+          description: Specifies if recording is enabled.
+        acceptIncoming:
+          type: boolean
+          description: Specifies if inbound calls are accepted.
+        config:
+          $ref: '#/components/schemas/TelephonyConfigDto'
+
+    TelephonyConfigDto:
+      type: object
+      description: Telephony settings.
+      properties:
+        asr:
+          $ref: '#/components/schemas/AsrConfigDto'
+        tts:
+          $ref: '#/components/schemas/TtsConfigDto'
+        projectSettings:
+          $ref: '#/components/schemas/ProjectSettingsDto'
+        noiseConfig:
+          $ref: '#/components/schemas/NoiseConfigDto'
+        asrTtsDiagnosticModeConfig:
+          $ref: '#/components/schemas/AsrTtsDiagnosticModeConfigDto'
+        internalTrunkConfig:
+          $ref: '#/components/schemas/InternalTrunkConfigDto'
+        audioToken:
+          $ref: '#/components/schemas/AudioTokenDto'
+
+    AsrConfigDto:
+      type: object
+      properties:
+        asrType:
+          type: string
+          description: "ASR provider. Possible values: `YANDEX`, `GOOGLE`, `ASM`, `AZURE`, `ZITECH`, `AUDIOGRAM`."
+        speech:
+          $ref: '#/components/schemas/SpeechProviderDto'
+        googleAsrConfig:
+          $ref: '#/components/schemas/GoogleAsrConfig'
+        yandexAsrConfig:
+          $ref: '#/components/schemas/YandexAsrConfig'
+        asmAsrConfig:
+          $ref: '#/components/schemas/AsmAsrConfig'
+        azureAsrConfig:
+          $ref: '#/components/schemas/AzureAsrConfig'
+        zitechAsrConfig:
+          $ref: '#/components/schemas/ZitechAsrConfig'
+
+    SpeechProviderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Provider ID.
+        name:
+          type: string
+          description: Provider name.
+        yandex:
+          $ref: '#/components/schemas/SpeechProviderYandexDto'
+        google:
+          $ref: '#/components/schemas/SpeechProviderGoogleDto'
+        azure:
+          $ref: '#/components/schemas/SpeechProviderAzureDto'
+        zitech:
+          $ref: '#/components/schemas/SpeechProviderZitechDto'
+        asm:
+          $ref: '#/components/schemas/SpeechProviderAsmDto'
+        aimyvoice:
+          $ref: '#/components/schemas/SpeechProviderAimyvoiceDto'
+        caila:
+          $ref: '#/components/schemas/SpeechProviderCailaDto'
+        tinkoff:
+          $ref: '#/components/schemas/SpeechProviderTinkoffDto'
+        sber:
+          $ref: '#/components/schemas/SpeechProviderSberDto'
+        kaldi:
+          $ref: '#/components/schemas/SpeechProviderKaldiDto'
+        audiogram:
+          $ref: '#/components/schemas/SpeechProviderAudiogramDto'
+
+    SpeechProviderYandexDto:
+      type: object
+      properties:
+        folderId:
+          type: string
+        serviceAccountId:
+          type: string
+        pemPrivateKey:
+          type: string
+        keyId:
+          type: string
+
+    SpeechProviderGoogleDto:
+      type: object
+      properties:
+        jsonToken:
+          type: string
+
+    SpeechProviderAzureDto:
+      type: object
+      properties:
+        region:
+          type: string
+        subscriptionKey:
+          type: string
+        connectionType:
+          type: string
+
+    SpeechProviderZitechDto:
+      type: object
+      properties:
+        token:
+          type: string
+
+    SpeechProviderAsmDto:
+      type: object
+      properties:
+        apiKey:
+          type: string
+
+    SpeechProviderAimyvoiceDto:
+      type: object
+      properties:
+        apiKey:
+          type: string
+
+    SpeechProviderCailaDto:
+      type: object
+      properties:
+        mlpApiKey:
+          type: string
+
+    SpeechProviderTinkoffDto:
+      type: object
+      properties:
+        apiKey:
+          type: string
+        secretKey:
+          type: string
+
+    SpeechProviderSberDto:
+      type: object
+      properties:
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        scope:
+          type: string
+          description: "Sber service scope. Possible values: `SALUTE_SPEECH_PERS`, `SALUTE_SPEECH_CORP`, `SBER_SPEECH`."
+
+    SpeechProviderKaldiDto:
+      type: object
+      properties:
+        url:
+          type: string
+        apiKey:
+          type: string
+
+    SpeechProviderAudiogramDto:
+      type: object
+      properties:
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        account:
+          type: string
+        workspace:
+          type: string
+
+    TtsConfigDto:
+      type: object
+      properties:
+        googleTtsConfig:
+          $ref: '#/components/schemas/GoogleTTSConfigDto'
+        yandexTtsConfig:
+          $ref: '#/components/schemas/YandexTTSConfigDto'
+        azureTtsConfig:
+          $ref: '#/components/schemas/AzureTTSConfigDto'
+        zitechTtsConfig:
+          $ref: '#/components/schemas/ZitechTTSConfigDto'
+        aimyvoiceTtsConfig:
+          $ref: '#/components/schemas/AimyvoiceTTSConfigDto'
+        cailaTtsConfig:
+          $ref: '#/components/schemas/CailaTTSConfigDto'
+        sberTtsConfig:
+          $ref: '#/components/schemas/SberTTSConfigDto'
+        audiogramTtsConfig:
+          $ref: '#/components/schemas/AudiogramTtsConfigDto'
+
+    GoogleTTSConfigDto:
+      type: object
+      properties:
+        voice:
+          type: string
+        speakingRate:
+          type: number
+        pitch:
+          type: number
+        volumeGainDb:
+          type: number
+
+    YandexTTSConfigDto:
+      type: object
+      properties:
+        languageCode:
+          type: string
+        voice:
+          type: string
+        speakingRate:
+          type: number
+        volume:
+          type: number
+        useV3:
+          type: boolean
+        useVariables:
+          type: boolean
+
+    AzureTTSConfigDto:
+      type: object
+      properties:
+        voiceName:
+          type: string
+
+    ZitechTTSConfigDto:
+      type: object
+      properties:
+        model:
+          type: string
+
+    AimyvoiceTTSConfigDto:
+      type: object
+      properties:
+        voice:
+          type: string
+
+    CailaTTSConfigDto:
+      type: object
+      properties:
+        voice:
+          type: string
+
+    SberTTSConfigDto:
+      type: object
+      properties:
+        voice:
+          type: string
+        languageCode:
+          type: string
+
+    AudiogramTtsConfigDto:
+      type: object
+      properties:
+        voice:
+          type: string
+        modelType:
+          type: string
+        voiceStyle:
+          type: string
+
+    NoiseConfigDto:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          description: Specifies if noise filtering is enabled.
+
+    AsrTtsDiagnosticModeConfigDto:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+
+    InternalTrunkConfigDto:
+      type: object
+      properties:
+        resteriskTrunkId:
+          type: integer
+          format: int64
+        telephonyNumberPocketAccountRK:
+          $ref: '#/components/schemas/TelephonyNumberPocketAccountRK'
+
+    TelephonyNumberPocketAccountRK:
+      type: object
+      properties:
+        telephonyNumberPocketAccountId:
+          type: integer
+          format: int64
+        groupNumber:
+          type: string
+
+    AudioTokenDto:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+
+    BotChannelRepositoryReferenceParamsDto:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/RefType'
+        value:
+          type: string
+          description: The value of the repository reference, for example, a branch name.
+          default: master
+          example: master
+
+    ChatWidgetOptionsDto:
+      type: object
+      description: Chat widget settings.
+      required:
+        - avatar
+        - blockForm
+        - buttonsSamePlace
+        - embedmentContainer
+        - fileUpload
+        - font
+        - headline
+        - hidePoweredByJustAI
+        - involvement
+        - linkPreview
+        - names
+        - palette
+        - percentage
+        - position
+        - positionOffset
+        - sendBtn
+        - sessionByUserMessage
+        - showCloseButton
+        - showLogo
+        - showSpinner
+        - sizes
+        - soundNotification
+      properties:
+        showLogo:
+          type: boolean
+          description: Specifies if the logo is displayed.
+          default: false
+        logo:
+          type: string
+          description: URL of the logo image.
+        percentage:
+          type: integer
+          description: Percentage of users who will see the widget on the site.
+          default: 100
+        copySource:
+          type: string
+          description: ID of the widget project from which settings are copied.
+        headline:
+          type: object
+          required:
+            - show
+          description: Chat title.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if title is displayed.
+            text:
+              type: string
+              description: Title text.
+        names:
+          type: object
+          required:
+            - show
+          description: Names displayed in widget.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if the names are displayed.
+            assistantName:
+              type: string
+              description: Bot name.
+            userName:
+              type: string
+              description: User name.
+            operatorDefaultName:
+              type: string
+              description: Default agent name.
+        sendBtn:
+          type: object
+          required:
+            - show
+          description: Setting for send button.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if the send button is displayed.
+        blockForm:
+          type: object
+          required:
+            - show
+          description: "Text input settings."
+          properties:
+            show:
+              type: boolean
+              description: "Disable text input when using buttons."
+        avatar:
+          type: object
+          required:
+            - show
+            - size
+          properties:
+            show:
+              type: boolean
+              description: Specifies if avatars are displayed.
+            assistantAvatarUrl:
+              type: string
+              description: URL of the bot avatar.
+            operatorAvatarUrl:
+              type: string
+              description: URL of the agent avatar.
+            size:
+              type: integer
+              format: int32
+              description: Avatar size in pixels.
+            userAvatarUrl:
+              type: string
+              description: URL of the user avatar.
+        linkPreview:
+          type: object
+          required:
+            - show
+          description: Link preview settings.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if link previews are displayed.
+        captions:
+          type: object
+          properties:
+            inputPlaceholder:
+              type: string
+              description: Placeholder text in the widget input field.
+        fileUpload:
+          type: object
+          required:
+            - show
+          properties:
+            show:
+              type: boolean
+              description: Specifies if file upload button is displayed.
+            uploadErrorMessage:
+              type: string
+              description: Text for upload error.
+            tooBigFileMessage:
+              type: string
+              description: Error text for files that exceed the size limit.
+        position:
+          type: string
+          description: Widget location on the screen, for example, `right`.
+          default: "right"
+        involvement:
+          type: object
+          required:
+            - enabled
+          description: Involvement in conversation settings.
+          properties:
+            enabled:
+              type: boolean
+              description: Specifies if involvement in conversation is enabled.
+            events:
+              type: array
+              description: List of events.
+              items:
+                type: object
+                properties:
+                  eventType:
+                    type: string
+                    description: Events that open the chat window, for example, `website_time`, `page_time`.
+                  value:
+                    type: integer
+                    description: Event value, for example, time in seconds.
+        bubble:
+          type: object
+          required:
+            - show
+            - delay
+          description: Pop-up message settings.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if pop-up message is displayed.
+            delay:
+              type: integer
+              description: Delay in seconds before the message is displayed.
+              default: 10
+            bubbletext:
+              type: string
+              description: Message text.
+            mobileBubbletext:
+              type: string
+              description: Message text on mobile devices.
+        sessionByUserMessage:
+          type: object
+          required:
+            - show
+            - buttonsShow
+            - delay
+          description: Welcome message settings.
+          properties:
+            show:
+              type: boolean
+              description: Specifies if the welcome message is displayed when a user opens the widget.
+            welcomemessage:
+              type: string
+              description: Welcome message text.
+            delay:
+              type: integer
+              description: Delay in seconds before the welcome message is displayed.
+              default: 0
+            buttonsShow:
+              type: boolean
+              description: Specifies if the buttons are displayed.
+              default: false
+            buttons:
+              type: array
+              description: List of buttons.
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: Button text.
+        positionOffset:
+          type: object
+          required:
+            - bottom
+            - right
+          description: Widget offset settings.
+          properties:
+            bottom:
+              type: integer
+              description: Offset from the bottom edge in pixels.
+              default: 24
+            right:
+              type: integer
+              description: Offset from the right edge in pixels.
+              default: 24
+        palette:
+          type: object
+          required:
+            - headlineBackgroundColor
+            - headlineTextColor
+            - chatBackgroundColor
+            - chatBackgroundOpacity
+            - userMessageBackgroundColor
+            - userMessageTextColor
+            - botMessageBackgroundColor
+            - botMessageTextColor
+            - formButtonsColor
+            - formTextColor
+          description: Color palette settings for the widget.
+          properties:
+            headlineBackgroundColor:
+              type: string
+              description: Background color for the headline.
+            headlineTextColor:
+              type: string
+              description: Text color for the headline, for example, `light` or `dark`.
+            chatBackgroundColor:
+              type: string
+              description: Background color for the chat area.
+            chatBackgroundOpacity:
+              type: integer
+              description: Opacity level for the chat background.
+            userMessageBackgroundColor:
+              type: string
+              description: Background color for user messages.
+            userMessageTextColor:
+              type: string
+              description: Text color for user messages, for example, `light` or `dark`.
+            botMessageBackgroundColor:
+              type: string
+              description: Background color for bot messages.
+            botMessageTextColor:
+              type: string
+              description: Text color for bot messages, for example, `light` or `dark`.
+            formButtonsColor:
+              type: string
+              description: Button color for the input field.
+            formTextColor:
+              type: string
+              description: Text color for the input field.
+            avatar:
+              type: string
+              description: Size of the avatar, for example, `big`.
+        font:
+          type: string
+          description: Font used in the widget.
+          default: Roboto
+        sizes:
+          type: object
+          required:
+            - font
+            - avatar
+          description: Size settings for font and avatar.
+          properties:
+            font:
+              type: string
+              description: Font size, for example, `small`.
+            avatar:
+              type: string
+              description: Avatar size, for example, `big`.
+        buttonsSamePlace:
+          type: boolean
+          description: Specifies if inline buttons are displayed above text input field.
+          default: false
+        soundNotification:
+          type: object
+          required:
+            - option
+          description: "Sound notifications settings."
+          properties:
+            option:
+              type: string
+              description: Option for sound notification, for example, `client_bot`.
+            sound:
+              type: string
+              description:  "URL of the notification sound file."
+        embedmentContainer:
+          type: object
+          required:
+            - enabled
+          description: Settings for embedding a widget in a container on the page.
+          properties:
+            id:
+              type: string
+              description: Embedding ID.
+            enabled:
+              type: boolean
+              description: Specifies if the embedding is enabled.
+        showCloseButton:
+          type: boolean
+          description: Specifies if close button is displayed.
+        showSpinner:
+          type: boolean
+          description: Specifies if animation when waiting for bot response is displayed.
+        hidePoweredByJustAI:
+          type: boolean
+          description: 'Specifies if the "Powered by" label is displayed.'
+          default: false
+        isAutoDeploy:
+          type: boolean
+          description: Specifies if automatic bot deployment is enabled.
+    DeployBotChannelDto:
+      type: object
+      required:
+        - projectShortName
+        - botId
+      properties:
+        projectShortName:
+          type: string
+          description: Project short name.
+        botId:
+          type: string
+          description: Bot ID.
+        forceDeploy:
+          type: boolean
+          description: Specifies if deployment is forced.
+          default: false
+        skipNotifications:
+          type: boolean
+          description: Specifies if notifications are skipped.
+          default: false
+        skipTests:
+          type: boolean
+          description: Specifies if tests are skipped.
+          default: false
+        runTestsInBackground:
+          type: boolean
+          description: Specifies if tests run in background.
+          default: false
+
+    CleanupDto:
+      properties:
+        dialogs:
+          type: boolean
+          default: false
+          description: Specifies if dialogs must be cleared.
+        olderThenDays:
+          type: integer
+          description: Number of days to store dialogs.
+
+    GitRepositoryConnectionReadDto:
+      type: object
+      description: Git integration. Uses login and token for authentication.
+      properties:
+        url:
+          type: string
+          description: Git repository URL.
+        login:
+          type: string
+          description: Git login.
+        authType:
+          $ref: '#/components/schemas/RepositoryAuthType'
+
+    TelephonyParamsDto:
+      description: Project settings for telephony.
+      properties:
+        callsBotChannelsType:
+          $ref: '#/components/schemas/CallsBotChannelType'
+        voiceUniqueName:
+          type: string
+          description: Name of the voice used in calls.
+
+    ProjectSettingsDto:
+      type: object
+      properties:
+        language:
+          type: string
+          default: "ru"
+          description: NLU language.
+        spellingCorrection:
+          type: boolean
+          default: false
+          description: Specifies if spelling correction is enabled.
+        classificationAlgorithm:
+          $ref: '#/components/schemas/ClassificationAlgorithm'
+        timezone:
+          type: string
+        extendedSettings:
+          $ref: '#/components/schemas/ExtendedProjectSettings'
+        shared:
+          type: boolean
+          default: false
+          description: Specifies if the project is shared.
+        validation:
+          $ref: '#/components/schemas/SoftValidationSettingsData'
+
+    SoftValidationSettingsData:
+      type: object
+      properties:
+        phraseValidationEnabled:
+          type: boolean
+          default: false
+        answerValidationEnabled:
+          type: boolean
+          default: false
+        phraseValidationThreshold:
+          type: number
+          format: float
+          default: 0.5
+        answerValidationThreshold:
+          type: number
+          format: float
+          default: 0.5
+
+    ExtendedProjectSettings:
+      type: object
+      properties:
+        patternsEnabled:
+          type: boolean
+        tokenizerEngine:
+          type: string
+        stsSettings:
+          $ref: "#/components/schemas/StsSettings"
+        cnnSettings:
+          $ref: "#/components/schemas/CnnSettings"
+        classicMLSettings:
+          $ref: "#/components/schemas/ClassicMLSettings"
+        logregSettings:
+          $ref: "#/components/schemas/LogregSettings"
+        dictionaryAutogeneration:
+          type: boolean
+        luceneAnalyzer:
+          type: string
+        shareIntents:
+          type: boolean
+        shareEntities:
+          type: boolean
+        disableHieroglyphicsTokenization:
+          type: boolean
+        allowedPatterns:
+          type: array
+          items:
+            type: string
+        useShared:
+          type: boolean
+        zflPatternsEnabled:
+          type: boolean
+        zflExtractorTimeLimit:
+          type: integer
+          format: int64
+        modelId:
+          type: string
+        modelIdForExternalUsage:
+          type: string
+        mlp:
+          $ref: "#/components/schemas/MlpSettings"
+        externalNluSettings:
+          $ref: "#/components/schemas/ExternalNluSettings"
+
+    BotChannelCustomData:
+      type: object
+      properties:
+        alisa:
+          $ref: "#/components/schemas/AlisaBotChannelCustomData"
+        googleAssistant:
+          $ref: "#/components/schemas/GoogleAssistantBotChannelCustomData"
+        marusia:
+          $ref: "#/components/schemas/MarusiaBotChannelCustomData"
+        vk:
+          $ref: "#/components/schemas/VkBotChannelCustomData"
+        slack:
+          $ref: "#/components/schemas/SlackBotChannelCustomData"
+        weChat:
+          $ref: "#/components/schemas/WeChatBotChannelCustomData"
+        vonage:
+          $ref: "#/components/schemas/VonageBotChannelCustomData"
+        iDigitalWhatsapp:
+          $ref: "#/components/schemas/IDigitalWhatsappBotChannelCustomData"
+        ednaWhatsapp:
+          $ref: "#/components/schemas/EdnaWhatsappBotChannelCustomData"
+        whatsapp:
+          $ref: "#/components/schemas/WhatsappBotChannelCustomData"
+        chatApi:
+          $ref: "#/components/schemas/ChatApiBotChannelCustomData"
+        zenDesk:
+          $ref: "#/components/schemas/ZenDeskBotChannelCustomData"
+        bitrix24:
+          $ref: "#/components/schemas/Bitrix24BotChannelCustomData"
+        chat2Desk:
+          $ref: "#/components/schemas/Chat2DeskBotChannelCustomData"
+        ednaChatCenter:
+          $ref: "#/components/schemas/EdnaChatCenterBotChannelCustomData"
+        azure:
+          $ref: "#/components/schemas/AzureBotChannelCustomData"
+        jivo:
+          $ref: "#/components/schemas/JivoBotChannelCustomData"
+        webim:
+          $ref: "#/components/schemas/WebimBotChannelCustomData"
+        livetex:
+          $ref: "#/components/schemas/LivetexBotChannelCustomData"
+        mattermost:
+          $ref: "#/components/schemas/MattermostBotChannelCustomData"
+
+    GoogleAsrConfig:
+      type: object
+      required:
+        - languageCode
+        - model
+      properties:
+        languageCode:
+          type: string
+          description: The language code for ASR.
+        model:
+          type: string
+          description: The model used for ASR.
+
+    YandexAsrConfig:
+      type: object
+      required:
+        - languageCode
+        - model
+      properties:
+        languageCode:
+          type: string
+          description: The language code for ASR.
+        model:
+          type: string
+          description: The model used for ASR.
+        numbersAsWords:
+          type: boolean
+          description: Whether to convert numbers to words.
+        sensitivityReduction:
+          type: boolean
+          description: Whether to reduce sensitivity.
+
+    AsmAsrConfig:
+      type: object
+      required:
+        - model
+      properties:
+        model:
+          type: string
+          description: The model used for ASR.
+
+    AzureAsrConfig:
+      type: object
+      required:
+        - languageCode
+      properties:
+        languageCode:
+          type: string
+          description: The language code for ASR.
+
+    ZitechAsrConfig:
+      type: object
+      required:
+        - model
+      properties:
+        model:
+          type: string
+          description: The model used for ASR.
+
+
+    AlisaBotChannelCustomData:
+      type: object
+      description: Settings for Alisa bot channel.
+      properties:
+        creationType:
+          $ref: "#/components/schemas/AlisaWebhookCreationType"
+        oauthToken:
+          type: string
+        skills:
+          $ref: "#/components/schemas/AlisaBotChannelSkill"
+
+    AlisaBotChannelSkill:
+      description: List of skill or webhook IDs.
+      type: array
+      items:
+        type: object
+        properties:
+          skillId:
+            type: string
+            description: Skill or webhook ID.
+
+    GoogleAssistantBotChannelCustomData:
+      type: object
+      description: Settings for Google Assistant bot channel.
+      properties:
+        applicationUrl:
+          type: string
+        triggers:
+          $ref: "#/components/schemas/GoogleAssistantTriggers"
+
+    GoogleAssistantTriggers:
+      description: Events that trigger a response from the assistant.
+      type: array
+      items:
+        type: string
+
+    MarusiaBotChannelCustomData:
+      type: object
+      description: Settings for Marusia bot channel.
+      properties:
+        access_token:
+          type: string
+          description: Access token.
+
+    VkBotChannelCustomData:
+      type: object
+      description: Settings for VK bot channel.
+      properties:
+        startDialogueWithUserMessage:
+          type: boolean
+          description: Specifies if the dialogue starts with any user message.
+          default: true
+
+    SlackBotChannelCustomData:
+      type: object
+      description: Settings for Slack bot channel.
+      properties:
+        applicationToken:
+          type: string
+          description: Access token.
+        verificationToken:
+          type: string
+          description: Verification token.
+
+    WeChatBotChannelCustomData:
+      type: object
+      description: Settings for WeChat bot channel.
+      properties:
+        appId:
+          type: string
+          description: AppID.
+        appSecret:
+          type: string
+          description: AppSecret.
+
+    VonageBotChannelCustomData:
+      type: object
+      description: Settings for Vonage bot channel.
+      properties:
+        apiKey:
+          type: string
+          description: API Key for basic authorization.
+        apiSecret:
+          type: string
+          description: API Secret for basic authorization.
+        authType:
+          $ref: "#/components/schemas/VonageAuthType"
+        bearerToken:
+          type: string
+          description: Token for bearer token authentication type.
+
+    IDigitalWhatsappBotChannelCustomData:
+      type: object
+      description: Settings for i-Digital WhatsApp bot channel.
+      properties:
+        source:
+          type: string
+          description: Account name.
+
+    EdnaWhatsappBotChannelCustomData:
+      type: object
+      description: Settings for edna WhatsApp bot channel.
+      properties:
+        apiKey:
+          type: string
+          description: API key.
+        cascadeId:
+          type: string
+          description: Cascade ID.
+
+    WhatsappBotChannelCustomData:
+      type: object
+      description: Settings for Whatsapp bot channel.
+      properties:
+        phoneNumberId:
+          type: string
+          description: Phone number ID.
+
+    ChatApiBotChannelCustomData:
+      type: object
+      description: Settings for Chat API bot channel.
+      properties:
+        blockForm:
+          type: boolean
+          description: "Disable text input when using buttons."
+          default: false
+        callbackUrl:
+          type: string
+          description: Webhook URL.
+
+    ZenDeskBotChannelCustomData:
+      type: object
+      description: Settings for ZenDesk bot channel.
+      properties:
+        clientId:
+          type: string
+          description: OAuth client ID.
+        domain:
+          type: string
+          description: Domain.
+        username:
+          type: string
+        userPassword:
+          type: string
+
+    Bitrix24BotChannelCustomData:
+      type: object
+      description: Settings for Bitrix24 bot channel.
+      properties:
+        botName:
+          type: string
+          description: First name.
+        botLastName:
+          type: string
+          description: Last name.
+        botEmail:
+          type: string
+          description: Email.
+        clientId:
+          type: string
+          description: Application code.
+        clientSecret:
+          type: string
+          description: Application key.
+        isOpenLines:
+          type: boolean
+          description: Use open lines.
+        botAvatar:
+          type: string
+          description: Bot avatar URL.
+        botAvatarName:
+          type: string
+          description: Bot avatar name.
+
+    Chat2DeskBotChannelCustomData:
+      type: object
+      description: Settings for Chat2Desk bot channel.
+      properties:
+        apiEndpoint:
+          type: string
+          description: API Endpoint.
+        channelId:
+          type: string
+          description: Channel ID.
+        operatorsChannel:
+          type: string
+          description: Agent bot.
+        operatorsChannelGroup:
+          type: string
+          description: Agent group.
+
+    EdnaChatCenterBotChannelCustomData:
+      type: object
+      description: Settings for edna.chatCenter bot channel.
+      properties:
+        bearerToken:
+          type: string
+        clientUrl:
+          type: string
+          description: Client URL.
+
+    AzureBotChannelCustomData:
+      type: object
+      description: Settings for Azure Bot channel.
+      properties:
+        appId:
+          type: string
+          description: Microsoft App ID.
+        password:
+          type: string
+          description: Password.
+
+    JivoBotChannelCustomData:
+      type: object
+      description: Settings for JivoChat bot channel.
+      properties:
+        providerId:
+          type: string
+          description: Provider ID.
+
+    WebimBotChannelCustomData:
+      type: object
+      description: Settings for Webim bot channel.
+      properties:
+        administratorEmail:
+          type: string
+          description: Administrator email.
+        administratorPassword:
+          type: string
+          description: Administrator password.
+        domain:
+          type: string
+          description: Domain.
+
+    LivetexBotChannelCustomData:
+      type: object
+      description: Settings for LiveTex bot channel.
+      properties:
+        channelId:
+          type: string
+          description: Channel ID.
+        forceReply:
+          type: boolean
+          description: Disable text input when using buttons.
+        greetingMessage:
+          type: string
+        integrationToken:
+          type: string
+
+    MattermostBotChannelCustomData:
+      type: object
+      description: Settings for Mattermost bot channel.
+      required:
+        - host
+      properties:
+        host:
+          type: string
+          description: Mattermost host
+
+    StsSettings:
+      type: object
+      description: STS classifier settings.
+      properties:
+        exactMatch:
+          type: number
+          format: float
+        patternMatch:
+          type: number
+          format: float
+
+    CnnSettings:
+      type: object
+      description: Deep Learning classifier settings.
+      properties:
+        lang:
+          type: string
+        kernel_sizes:
+          type: array
+          items:
+            type: integer
+
+    ClassicMLSettings:
+      type: object
+      description: Classic ML classifier settings.
+      properties:
+        C:
+          type: integer
+        lang:
+          type: string
+
+    LogregSettings:
+      type: object
+      description: LogReg classifier settings.
+      properties:
+        C:
+          type: integer
+
+    MlpSettings:
+      type: object
+      properties:
+        restUrl:
+          type: string
+        mlpAccessKey:
+          type: string
+        noTraining:
+          type: boolean
+        trainingModel:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+        derivedModel:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+        nerModels:
+          type: array
+          items:
+            type: object
+            properties:
+              account:
+                type: string
+              model:
+                type: string
+              config:
+                type: object
+                additionalProperties:
+                  type: string
+        markup:
+          type: object
+          properties:
+            account:
+              type: string
+            model:
+              type: string
+            config:
+              type: object
+              additionalProperties:
+                type: string
+
+    ExternalNluSettings:
+      type: object
+      properties:
+        nluProviderSettings:
+          description: External NLU settings.
+          type: object
+          properties:
+            markup:
+              $ref: '#/components/schemas/NluActionDescription'
+            ner:
+              $ref: '#/components/schemas/NluActionDescription'
+            classification:
+              $ref: '#/components/schemas/NluActionDescription'
+        language:
+          type: string
+          description: Language for external NLU. If not set, the project language is used.
+        nluActionAdditionalProperties:
+          type: object
+          properties:
+            markup:
+              type: object
+              description: Parameters for external NLU markup request. Passed to the external NLU service.
+              additionalProperties:
+                type: string
+            ner:
+              type: object
+              description: Parameters for external NLU NER request. Passed to the external NLU service.
+              additionalProperties:
+                type: string
+            classification:
+              type: object
+              properties:
+                modelId:
+                  type: string
+                  description: Classifier model ID. If not set, `default` is used.
+                classifierName:
+                  type: string
+                  description: Classifier name. If not set, `default` is used.
+                properties:
+                  type: object
+                  description: Parameters for external NLU classification request. Passed to the external NLU service.
+                  additionalProperties:
+                    type: string
+
+    NluActionDescription:
+      properties:
+        nluType:
+          type: string
+          description: NLU type.
+          enum:
+            - caila # deprecated
+            - internal
+            - external
+            - mlp
+        url:
+          type: string
+          description: URL of the external NLU provider. Required if `nluType` is set to `external`.
+
+    #Enums
+
+    AlisaWebhookCreationType:
+      type: string
+      description: Alisa webhook creation type.
+      default: auto
+      enum:
+        - auto
+        - manual
+
+    VonageAuthType:
+      type: string
+      description: Vonage authentication type.
+      default: basic
+      enum:
+        - basic
+        - bearer
+
+    ClassificationAlgorithm:
+      type: string
+      description: The algorithm used for classification.
+      default: sts
+      enum:
+        - sts
+        - regression
+        - deeplearning
+        - logreg
+        - transformer
+
+    RefType:
+      type: string
+      enum:
+        - BRANCH
+        - TAG
+        - REVISION
+      default: BRANCH
+      description: Type of the reference.
+
+    ChannelType:
+      type: string
+      description: Channel type.
+      enum:
+        - AZURE
+        - TELEGRAM
+        - FACEBOOK
+        - INSTAGRAM
+        - VIBER
+        - CHAT_API
+        - CHAT_WIDGET
+        - TEST_WIDGET
+        - YANDEX
+        - MARUSIA
+        - SBER
+        - RESTERISK
+        - SLACK
+        - VK
+        - LIVETEX_PROMPTER
+        - PROMPTER_API
+        - INBOUND_LIVETEX
+        - ZENDESK_PROMPTER
+        - WECHAT
+        - ZENDESK
+        - WEBIM
+        - INCOMING_WEBIM2
+        - ZOPIM
+        - VOICE_TEST_WIDGET
+        - GOOGLE
+        - ALEXA
+        - ZENBOX
+        - BITRIX
+        - CHAT2DESK
+        - ODNOKLASSNIKI
+        - NEXMO
+        - I_DIGITAL
+        - THREADS
+        - INCOMING_JIVOSITE
+        - JAICP_ALEXA
+        - DIALOGFLOW
+        - WAZZUP
+        - WHATSAPP
+        - EDNA_PLATFORM
+        - MATTERMOST
+
+    RepositoryAuthType:
+      type: string
+      enum:
+        - PERSONAL_USER
+        - GUEST_USER
+
+    BotChannelsType:
+      type: string
+      description: Types of bot channels in the project.
+      enum:
+        - CHAT_BOT
+        - CALLS_BOT
+
+    CallsBotChannelType:
+      type: string
+      enum:
+        - DIALER
+        - IVR
+
+    # Stubs
+
+    JsonNode:
+      type: object
+      description: Any object (array, json object and others).
+
+    Environment:
+      description: Project hosting type.
+      type: string
+      enum:
+        - JAICP_CLOUD
+        - EXTERNAL
+
+    Locale:
+      type: string
+      enum:
+        - ru
+        - en
+        - cn

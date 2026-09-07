@@ -1,0 +1,175 @@
+openapi: 3.0.1
+info:
+  title: ""
+  version: ""
+paths: {}
+
+components:
+  parameters:
+    idempotenceKey:
+      name: Idempotence-Key
+      in: header
+      required: false
+      schema:
+        type: string
+      example: beb8348c-810f-469d-832e-b8ece4594bc0
+
+    accountId:
+      name: accountId
+      in: path
+      description: Account identifier.
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    projectId:
+      name: projectId
+      in: path
+      description: Project identifier.
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      example: 'example_project-263-Wnu'
+
+  schemas:
+
+    DayOfWeek:
+      type: string
+      enum:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+
+    LocalTime:
+      type: string
+      description: Local time in 24-hour HH:MM format
+      example: '23:55'
+
+    AllowedTime:
+      type: object
+      properties:
+        mon:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        tue:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        wed:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        thu:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        fri:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        sat:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        sun:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+        default:
+          $ref: '#/components/schemas/LocalTimeIntervalList'
+
+    CampaignAllowedTime:
+      type: object
+      properties:
+        mon:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        tue:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        wed:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        thu:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        fri:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        sat:
+          $ref: '#/components/schemas/LocalTimeInterval'
+        sun:
+          $ref: '#/components/schemas/LocalTimeInterval'
+
+    LocalTimeIntervalList:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/LocalTimeInterval'
+
+    LocalTimeInterval:
+      type: object
+      required:
+        - localTimeFrom
+        - localTimeTo
+      properties:
+        localTimeFrom:
+          $ref: '#/components/schemas/LocalTime'
+        localTimeTo:
+          $ref: '#/components/schemas/LocalTime'
+
+    ApiErrorData:
+      description: Error response dto
+      required:
+        - error
+      properties:
+        error:
+          description: Machine-readable error code
+          type: string
+        message:
+          description: Human-readable error description
+          type: string
+        args:
+          description: Error description parameters. May be used in localization
+          type: object
+          additionalProperties:
+            type: string
+
+    CallTaskStatusType:
+      description: Campaign status.
+      type: string
+      enum:
+        - new
+        - planned
+        - inProgress
+        - finished
+        - paused
+        - deleted
+
+    CallTaskByTokenShortReportData:
+      required:
+        - totalNumbers
+        - processedNumbers
+        - usedTalkingTime
+        - usedAsrSeconds
+        - inProcessCalls
+        - retryCalls
+      description: Short report about campaign.
+      properties:
+        totalNumbers:
+          description: Total phone numbers in the campaign.
+          type: integer
+        processedNumbers:
+          description: How many phone numbers were processed.
+          type: integer
+        usedTalkingTime:
+          description: How many telephony seconds were used.
+          type: integer
+          format: int64
+        usedAsrSeconds:
+          description: How many ASR seconds were used.
+          type: integer
+          format: int64
+        inProcessCalls:
+          description: How many calls are in progress.
+          type: integer
+        retryCalls:
+          description: Number of repeated call attempts.
+          type: integer
+
+    BotChannelDTO:
+      required:
+        - botId
+      properties:
+        botId:
+          description: Идентификатор канала. Имя канала для отображения подставляется на основе этого идентификатора.
+          type: string
+          example: '263-example_project-263-Wnu-49199'

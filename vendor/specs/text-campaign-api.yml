@@ -1,0 +1,1123 @@
+openapi: 3.0.1
+
+info:
+  title: Text campaign API
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:9860
+    description: Development server
+
+tags:
+- name: TextCampaign
+  description: Text campaign management.
+- name: TextCampaignDynamic
+  description: Dynamic text campaign management. This includes managing event sending templates, sending events and replies.
+
+paths:
+  # *******************************************************************************
+  #                                  Text campaign
+  # *******************************************************************************
+
+  /api/v1/text-campaign-service/projects/{projectShortName}/text-campaigns:
+    get:
+      tags:
+        - TextCampaign
+      summary: Get text campaign list
+      description: Get a text campaign list for the project.
+      operationId: getTextCampaigns
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/pageParamOptional'
+        - $ref: '#/components/parameters/sizeParamOptional'
+        - $ref: '#/components/parameters/textCampaignNameParamOptional'
+        - $ref: '#/components/parameters/botIdsParamOptional'
+        - $ref: '#/components/parameters/statusesParamOptional'
+        - $ref: '#/components/parameters/creationTimeFromParamOptional'
+        - $ref: '#/components/parameters/creationTimeToParamOptional'
+        - $ref: '#/components/parameters/startTimeFromParamOptional'
+        - $ref: '#/components/parameters/startTimeToParamOptional'
+        - $ref: '#/components/parameters/stopTimeFromParamOptional'
+        - $ref: '#/components/parameters/stopTimeToParamOptional'
+        - $ref: '#/components/parameters/isDynamicParamOptional'
+      responses:
+        '200':
+          description: Text campaign list has been successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignsDto'
+    post:
+      tags:
+        - TextCampaign
+      summary: Create text campaign
+      description: Create a text campaign for the project.
+      operationId: createTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTextCampaignDto'
+      responses:
+        '200':
+          description: Text campaign has been successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+
+
+  /api/v1/text-campaign-service/projects/{projectShortName}/text-campaigns/{textCampaignId}:
+    get:
+      tags:
+        - TextCampaign
+      summary: Get text campaign
+      description: Get text campaign details.
+      operationId: getTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      responses:
+        '200':
+          description: Text campaign details have been successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+    put:
+      tags:
+        - TextCampaign
+      summary: Update text campaign
+      description: Update text campaign details.
+      operationId: updateTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTextCampaignDto'
+      responses:
+        '200':
+          description: Text campaign has been successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+
+
+  /api/v1/text-campaign-service/projects/{projectShortName}/text-campaigns/{textCampaignId}/stop:
+    put:
+      tags:
+        - TextCampaign
+      summary: Stop text campaign
+      description: Stop the text campaign.
+      operationId: stopTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      responses:
+        '200':
+          description: Text campaign has been successfully stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+  /api/text-campaign-service/accounts/{accountId}/projects/{projectShortName}/text-campaigns/{textCampaignId}:
+    get:
+      tags:
+        - TextCampaign
+      description: Get text campaign
+      operationId: getTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      responses:
+        '200':
+          description: Text campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+    put:
+      tags:
+        - TextCampaign
+      description: Update text campaign
+      operationId: updateTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTextCampaignDto'
+      responses:
+        '200':
+          description: Text campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+  /api/v1/text-campaign-service/projects/{projectShortName}/text-campaigns/{textCampaignId}/resume:
+    put:
+      tags:
+        - TextCampaign
+      summary: Resume text campaign
+      description: Resume text campaign (after stopping).
+      operationId: resumeTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      responses:
+        '200':
+          description: Text campaign was successfully resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+  /api/v1/text-campaign-service/projects/{projectShortName}/text-campaigns/{textCampaignId}/complete:
+    put:
+      tags:
+        - TextCampaign
+      summary: Complete text campaign
+      description: Complete the text campaign.
+      operationId: completeTextCampaign
+      parameters:
+        - $ref: '#/components/parameters/projectShortName'
+        - $ref: '#/components/parameters/textCampaignId'
+      responses:
+        '200':
+          description: Text campaign has been successfully completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignDto'
+
+  # *******************************************************************************
+  #                           Dynamic TextCampaign
+  # *******************************************************************************
+
+  /api/v1/text-campaign-service/dynamics/sending-templates:
+    post:
+      tags:
+        - TextCampaignDynamic
+      summary: Create event sending template
+      description: Create an event sending template for the text campaign.
+      operationId: createEventSendingTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventSendingTemplateCreateDto'
+      responses:
+        '200':
+          description: Event sending template has been successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingTemplateResultDto'
+
+  /api/v1/text-campaign-service/dynamics/sending-templates/{eventSendingTemplateUuid}:
+    get:
+      tags:
+        - TextCampaignDynamic
+      summary: Get event sending template
+      description: Get event sending template details.
+      operationId: getEventSendingTemplate
+      parameters:
+        - $ref: '#/components/parameters/eventSendingTemplateUuid'
+      responses:
+        '200':
+          description: Event sending template details have been successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingTemplateDto'
+    delete:
+      tags:
+        - TextCampaignDynamic
+      summary: Delete event sending template
+      description: Delete the event sending template.
+      operationId: deleteEventSendingTemplate
+      parameters:
+        - $ref: '#/components/parameters/eventSendingTemplateUuid'
+      responses:
+        '200':
+          description: Event sending template has been successfully deleted
+
+  /api/v1/text-campaign-service/dynamics/send-event-by-template/{eventSendingTemplateUuid}:
+    get:
+      tags:
+        - TextCampaignDynamic
+      summary: Send event by template
+      description: Send an event using the template’s default parameters.
+      operationId: sendEventByTemplateSimple
+      parameters:
+        - $ref: '#/components/parameters/eventSendingTemplateUuid'
+      responses:
+        '200':
+          description: Event has been successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingIdDto'
+    post:
+      tags:
+        - TextCampaignDynamic
+      summary: Send event by template
+      description: Send an event with custom parameters, overriding those defined in the template.
+      operationId: sendEventByTemplate
+      parameters:
+        - $ref: '#/components/parameters/eventSendingTemplateUuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventSendingTemplateSendDto'
+      responses:
+        '200':
+          description: Event has been successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingIdDto'
+
+  /api/v1/text-campaign-service/dynamics/send-event:
+    post:
+      tags:
+        - TextCampaignDynamic
+      summary: Send event
+      description: Send an event linked to the text campaign without using a sending template.
+      operationId: sendEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextCampaignSendEventCreateDto'
+      responses:
+        '200':
+          description: Event has been successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingIdDto'
+
+  /api/v1/text-campaign-service/dynamics/send-replies:
+    post:
+      tags:
+        - TextCampaignDynamic
+      summary: Send replies
+      description: Send messages directly to client channels, bypassing bot script processing.
+      operationId: sendReplies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextCampaignSendRepliesCreateDto'
+      responses:
+        '200':
+          description: Reply has been successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventSendingIdDto'
+
+  /api/v1/text-campaign-service/dynamics/sendings:
+    get:
+      tags:
+        - TextCampaignDynamic
+      summary: Get sendings
+      description: Get a list of sendings filtered by the provided parameters.
+      operationId: getSendings
+      parameters:
+        - $ref: '#/components/parameters/textCampaignIdParamOptional'
+        - $ref: '#/components/parameters/eventSendingInfoUuidParamOptional'
+        - $ref: '#/components/parameters/eventSendingTemplateUuidParamOptional'
+        - $ref: '#/components/parameters/startTimeFromParamOptional'
+        - $ref: '#/components/parameters/startTimeToParamOptional'
+        - $ref: '#/components/parameters/statusParamOptional'
+        - $ref: '#/components/parameters/limitParamOptional'
+        - $ref: '#/components/parameters/offsetParamOptional'
+      responses:
+        '200':
+          description: Sending list has been successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextCampaignSendingsInfoDto'
+
+  /api/v1/text-campaign-service/dynamics/sendings/{eventSendingUuid}/cancel:
+    put:
+      tags:
+        - TextCampaignDynamic
+      summary: Cancel sending
+      description: Cancel the specified sending.
+      operationId: cancelSending
+      parameters:
+        - $ref: '#/components/parameters/eventSendingUuid'
+      responses:
+        '200':
+          description: Sending has been successfully canceled
+
+  /api/v1/text-campaign-service/dynamics/sending-templates/chat-history:
+    get:
+      tags:
+        - TextCampaignDynamic
+      summary: Get event sending and chat history
+      description: Get the event sending template history along with the client’s chat history with the bot.
+      operationId: getEventSendingTemplateHistory
+      parameters:
+        - $ref: '#/components/parameters/eventSendingInfoUuidParamOptional'
+        - $ref: '#/components/parameters/eventSendingTemplateUuidParamOptional'
+        - $ref: '#/components/parameters/limitParamRequired'
+        - $ref: '#/components/parameters/timestampParamRequired'
+      responses:
+        '200':
+          description: Chat history successfully returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatHistoryDto'
+
+
+
+components:
+  parameters:
+
+    ### Header parameters ###
+    authorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+
+    ### Path parameters ###
+    accountId:
+      name: accountId
+      in: path
+      description: Account identifier
+      required: true
+      schema:
+        type: integer
+        format: int64
+    projectShortName:
+      name: projectShortName
+      in: path
+      description: |
+        Project short name. You can find it in the project URL in the platform.
+        Example: `https:/platform-domain.com/short_name-123456789-srS`.
+      required: true
+      schema:
+        type: string
+    textCampaignId:
+      name: textCampaignId
+      in: path
+      description: Text campaign ID.
+      required: true
+      schema:
+        type: integer
+        format: int64
+    eventSendingTemplateUuid:
+      name: eventSendingTemplateUuid
+      in: path
+      description: Event sending template ID.
+      required: true
+      schema:
+        type: string
+    eventSendingUuid:
+      in: path
+      required: true
+      name: eventSendingUuid
+      description: UUID of the event or reply sending.
+      schema:
+        type: string
+    ### Query parameters ###
+    timestampParamRequired:
+      in: query
+      name: fromTimestamp
+      description: Starting Unix timestamp for filtering results.
+      required: true
+      schema:
+        type: integer
+        format: int64
+    limitParamRequired:
+      in: query
+      name: limit
+      description: Maximum number of chat history messages to return.
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 20
+    textCampaignIdParamRequired:
+      in: query
+      name: textCampaignId
+      required: true
+      description: Text campaign ID.
+      schema:
+        type: integer
+        format: int64
+    pageParamOptional:
+      in: query
+      name: page
+      description: Page number.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    sizeParamOptional:
+      in: query
+      name: size
+      description: Number of records per page.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 20
+    botIdsParamOptional:
+      in: query
+      name: botIds
+      description: List of botIds to filter by.
+      schema:
+        type: array
+        items:
+          type: string
+    statusesParamOptional:
+      in: query
+      name: statuses
+      description: |
+        Text campaign status list.
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/TextCampaignStatus"
+    creationTimeFromParamOptional:
+      in: query
+      name: creationTimeFrom
+      description: The earliest creation time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    creationTimeToParamOptional:
+      in: query
+      name: creationTimeTo
+      description: The latest creation time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    startTimeFromParamOptional:
+      in: query
+      name: startTimeFrom
+      description: The earliest start time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    startTimeToParamOptional:
+      in: query
+      name: startTimeTo
+      description: The latest start time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    stopTimeFromParamOptional:
+      in: query
+      name: stopTimeFrom
+      description: The earliest stop time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    stopTimeToParamOptional:
+      in: query
+      name: stopTimeTo
+      description: The latest stop time of a text campaign to include in the results. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+      schema:
+        type: string
+        format: date-time
+    textCampaignIdParamOptional:
+      in: query
+      name: textCampaignId
+      required: false
+      description: ID of the text campaign to filter by.
+      schema:
+        type: integer
+        format: int64
+
+    textCampaignNameParamOptional:
+      in: query
+      name: textCampaignName
+      description: Text campaign name.
+      schema:
+        type: string
+    limitParamOptional:
+      in: query
+      name: limit
+      description: Maximum number of records to return.
+      schema:
+        type: integer
+    offsetParamOptional:
+      in: query
+      name: offset
+      description: Number of records to skip before starting to return results.
+      schema:
+        type: integer
+    statusParamOptional:
+      in: query
+      name: status
+      description: |
+         Status of the event sending. Possible values: `INIT`, `PENDING`, `SENT`, `DELIVERED`, `NOT_DELIVERED`, `FAILED`, `POSTPONED`, `CANCELED`.
+      schema:
+        type: string
+    eventSendingInfoUuidParamOptional:
+      in: query
+      name: eventSendingInfoUuid
+      description: UUID of the event or reply sending info to filter by.
+      schema:
+        type: string
+    eventSendingTemplateUuidParamOptional:
+      in: query
+      name: eventSendingTemplateUuid
+      description: UUID of the event sending template to filter by.
+      schema:
+        type: string
+    isDynamicParamOptional:
+      in: query
+      name: isDynamic
+      description: Show only dynamic text campaigns if true.
+      schema:
+        type: boolean
+
+
+
+  schemas:
+
+    ### DTOs ###
+
+    TextCampaignsDto:
+      required:
+        - paging
+        - textCampaigns
+      properties:
+        paging:
+          $ref: '#/components/schemas/Pagination'
+        textCampaigns:
+          type: array
+          items:
+            $ref: '#/components/schemas/TextCampaignDto'
+
+    TextCampaignDto:
+      required:
+        - id
+        - name
+        - accountId
+        - projectShortName
+        - creationTime
+        - startTime
+        - startNow
+        - status
+        - botId
+        - delayBetweenSending
+        - threadCount
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Text campaign ID.
+        name:
+          type: string
+          description: Text campaign name.
+        accountId:
+          type: integer
+          format: int64
+          description: Account ID.
+        projectShortName:
+          type: string
+          description: Project short name.
+        creationTime:
+          type: string
+          format: date-time
+          description: Text campaign creation time.
+        status:
+          $ref: "#/components/schemas/TextCampaignStatus"
+        botId:
+          type: string
+          description: BotId.
+        eventName:
+          type: string
+          description: The name of the event sent to the bot.
+        jgraphReplies:
+          $ref: "#/components/schemas/JsonNode"
+        delayBetweenSending:
+          description: Sending delay. Pause in milliseconds between each message sent in the same thread.
+          type: integer
+          format: int32
+          default: 0
+          minimum: 1
+          maximum: 60000
+        threadCount:
+          description: Number of threads. Determines how many messages are sent simultaneously.
+          type: integer
+          format: int32
+          default: 1
+          minimum: 1
+          maximum: 10
+        isDynamic:
+          description: Indicates whether this text campaign is dynamic.
+          type: boolean
+
+    Pagination:
+      required:
+        - pageNum
+        - pageSize
+        - totalCount
+      properties:
+        pageNum:
+          type: integer
+          format: int32
+          description: Page number.
+        pageSize:
+          type: integer
+          format: int32
+          description: Number of records per page.
+        totalCount:
+          type: integer
+          format: int64
+          description: Total number of records found.
+
+    CreateTextCampaignDto:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Text campaign name.
+        eventName:
+          type: string
+          description: The name of the event that will be sent to the bot.
+        jgraphReplies:
+          $ref: "#/components/schemas/JsonNode"
+        delayBetweenSending:
+          description: Pause in milliseconds between sending messages in a single thread.
+          type: integer
+          format: int32
+          default: 0
+          minimum: 1
+          maximum: 60000
+        threadCount:
+          description: Number of threads. Determines how many messages are sent simultaneously.
+          type: integer
+          format: int32
+          default: 1
+          minimum: 1
+          maximum: 10
+        isDynamic:
+          description: Specifies whether to create a dynamic or standard text campaign.
+          type: boolean
+          default: false
+
+    UpdateTextCampaignDto:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Text campaign name.
+        eventName:
+          type: string
+          description: The name of the event that will be sent to the bot.
+        jgraphReplies:
+          $ref: "#/components/schemas/JsonNode"
+        delayBetweenSending:
+          description: Pause in milliseconds between sending messages in a single thread.
+          type: integer
+          format: int32
+          default: 0
+          minimum: 1
+          maximum: 60000
+        threadCount:
+          description: Number of threads. Determines how many messages are sent simultaneously.
+          type: integer
+          format: int32
+          default: 1
+          minimum: 1
+          maximum: 10
+        isDynamic:
+          description: This field cannot be modified after text campaign creation.
+          type: boolean
+
+    EventSendingIdDto:
+      required:
+        - uuid
+      properties:
+        uuid:
+          type: string
+          description: UUID of the event sending.
+
+    EventSendingTemplateDto:
+      required:
+        - textCampaign
+        - botId
+        - clientId
+      properties:
+        textCampaign:
+          $ref: '#/components/schemas/TextCampaignSimpleDto'
+        botId:
+          type: string
+          description: |
+            BotId. It can be found in the *Channels* page in the platform.
+        clientId:
+          type: string
+          description: Client ID from the platform.
+        event:
+          type: string
+          description: The event name that initiates an action in the bot script.
+        eventData:
+          $ref: '#/components/schemas/JsonNode'
+        replies:
+          $ref: '#/components/schemas/JsonNode'
+        callbackUrl:
+          type: string
+          description: Callback URL to which the result will be sent.
+        priority:
+          type: integer
+          description: Default priority for sending messages to clients. Lower values have higher priority (e.g., 0 is sent before 1).
+
+    EventSendingTemplateCreateDto:
+      required:
+        - textCampaignName
+        - botId
+        - clientId
+      properties:
+        textCampaignName:
+          type: string
+          description: Name of the text campaign to link to.
+        botId:
+          type: string
+          description: |
+            BotId. It can be found in the *Channels* page in the platform.
+        clientId:
+          type: string
+          description: Client ID. It can be found in the *Analytics* → *Clients* page in the platform.
+        event:
+          type: string
+          description: The event name that initiates an action in the bot script.
+        eventData:
+          $ref: '#/components/schemas/JsonNode'
+        replies:
+          $ref: '#/components/schemas/JsonNode'
+        callbackUrl:
+          type: string
+          description: Callback URL to which the result will be sent.
+        priority:
+          type: integer
+          description: Default priority for sending messages to clients. Lower values have higher priority (e.g., 0 is sent before 1).
+          default: 0
+
+    TextCampaignSendEventCreateDto:
+      required:
+        - textCampaignName
+        - botId
+        - clientId
+        - event
+      properties:
+        textCampaignName:
+          type: string
+          description: Name of the text campaign to link to.
+        botId:
+          type: string
+          description: BotId. It can be found in the *Channels* page in the platform.
+        clientId:
+          type: string
+          description: Client ID. It can be found in the *Analytics* → *Clients* page in the platform.
+        event:
+          type: string
+          description: The event name that initiates an action in the bot script.
+        eventData:
+          $ref: '#/components/schemas/JsonNode'
+        callbackUrl:
+          type: string
+          description: Callback URL to which the result will be sent.
+        priority:
+          type: integer
+          description: Priority for sending the event to clients. Lower values have higher priority (e.g., 0 is sent before 1).
+        sendingTime:
+          type: string
+          format: date-time
+          description: |
+            Scheduled date and time for sending the event. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+
+    TextCampaignSendRepliesCreateDto:
+      required:
+        - textCampaignName
+        - botId
+        - clientId
+      properties:
+        textCampaignName:
+          type: string
+          description: Name of the text campaign to link to.
+        botId:
+          type: string
+          description: |
+            BotId. It can be found in the *Channels* page in the platform.
+        clientId:
+          type: string
+          description: Client ID. It can be found in the *Analytics* → *Clients* page in the platform.
+        replies:
+          $ref: '#/components/schemas/JsonNode'
+        callbackUrl:
+          type: string
+          description: Callback URL to which the result will be sent.
+        priority:
+          type: integer
+          description: Priority for sending the reply to clients. Lower values have higher priority (e.g., 0 is sent before 1).
+        sendingTime:
+          type: string
+          format: date-time
+          description: |
+            Scheduled date and time for sending the reply. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+
+    EventSendingTemplateResultDto:
+      required:
+        - id
+        - link
+      properties:
+        id:
+          type: string
+          description: UUID of the event sending template.
+        link:
+          type: string
+          description: URL for sending an event with this template.
+
+    TextCampaignSimpleDto:
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Text campaign ID.
+        name:
+          type: string
+          description: Text campaign name.
+
+    EventSendingTemplateSendDto:
+      properties:
+        eventData:
+          $ref: '#/components/schemas/JsonNode'
+        callbackUrl:
+          type: string
+          description: Callback URL to which the result will be sent.
+        priority:
+          type: integer
+          description: Priority for sending the event to clients. Lower values have higher priority (e.g., 0 is sent before 1).
+        sendingTime:
+          type: string
+          format: date-time
+          description: |
+            Scheduled date and time for sending the event. Use ISO 8601 format (e.g., `2024-06-03T15:30:00`).
+
+    TextCampaignSendingsInfoDto:
+      required:
+        - totalCount
+        - sendings
+      properties:
+        totalCount:
+          type: integer
+          description: Total number of sendings found.
+        sendings:
+          type: array
+          items:
+            $ref: '#/components/schemas/SendingInfoDto'
+
+    SendingInfoDto:
+      required:
+        - id
+        - botId
+        - clientId
+        - status
+      properties:
+        id:
+          type: string
+          description: Text campaign ID the sending is linked to.
+        botId:
+          type: string
+          description: BotId from the platform.
+        clientId:
+          type: string
+          description: Client ID from the platform.
+        event:
+          type: string
+          description: The event name that initiates an action in the bot script.
+        eventData:
+          $ref: '#/components/schemas/JsonNode'
+        replies:
+          $ref: '#/components/schemas/JsonNode'
+        sendingTime:
+          type: string
+          format: date-time
+          description: Scheduled date and time for sending the event.
+        errorReason:
+          type: string
+          description: Details about the error, if one occurred.
+        status:
+          $ref: '#/components/schemas/EventSendingStatus'
+
+
+    ChatHistoryDto:
+      required:
+        - totalCount
+      properties:
+        totalCount:
+          type: integer
+          description: Total number of chat messages found.
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatHistoryMessage'
+
+
+    ChatHistoryMessage:
+      required:
+        - questionId
+        - author
+        - status
+        - timestamp
+      properties:
+        questionId:
+          type: string
+          description: Request ID.
+        textMessage:
+          type: string
+          description: Message text from the client’s conversation with the bot.
+        author:
+          $ref: '#/components/schemas/Author'
+        status:
+          $ref: '#/components/schemas/MessageStatus'
+        eventData:
+          type: string
+          $ref: '#/components/schemas/JsonNode'
+        replies:
+          $ref: '#/components/schemas/JsonNode'
+        timestamp:
+          type: string
+          format: date-time
+          description: Time the request was sent, in UTC. Use ISO 8601 format (e.g., `2024-06-03T15:30:00Z`).
+
+    EventSendingCallbackDto:
+      required:
+        - textCampaignId
+        - eventSendingTemplateId
+        - eventSendingInfoId
+        - status
+        - eventSendingTime
+      properties:
+        status:
+          $ref: '#/components/schemas/EventSendingStatus'
+        channelStatus:
+          $ref: '#/components/schemas/ChannelStatus'
+        channelStatusDescription:
+          type: string
+        textCampaignId:
+          type: integer
+          format: int64
+        eventSendingInfoId:
+          type: string
+        eventSendingTemplateId:
+          type: string
+        eventSendingTime:
+          type: string
+          format: date-time
+
+    #Enums
+
+    MessageStatus:
+      type: string
+      description: Status of the message.
+      enum:
+        - SENT
+        - DELIVERED
+        - READ
+        - NOT_SENT
+        - NOT_DELIVERED
+
+    Author:
+      type: string
+      description: Author of the message.
+      enum:
+        - BOT
+        - CLIENT
+        - OPERATOR
+        - SYSTEM
+
+    TextCampaignStatus:
+      type: string
+      description: Status of the text campaign.
+      enum:
+        - CREATED
+        - READY
+        - STARTED
+        - STOPPED
+        - POSTPONED
+        - COMPLETED
+        - FAILED
+        - DELETED
+
+    EventSendingStatus:
+      type: string
+      enum:
+        - INIT
+        - PENDING
+        - SENT
+        - FAILED
+        - POSTPONED
+        - CANCELED
+
+    ChannelStatus:
+      type: string
+      enum:
+        - BAD_REQUEST
+        - FORBIDDEN
+        - TOO_MANY_REQUESTS
+        - INTERNAL_SERVER_ERROR
+        - OTHER_ERRORS
+
+    # Stubs
+
+    JsonNode:
+      type: object
+      description: |
+        Any object: an array, JSON object, and others.
+
+    ObjectNode:
+      type: object
+      description: JSON object. Cannot be a array or literal.
+
+    Locale:
+      type: string
+      enum:
+        - ru
+        - en
+        - cn

@@ -1,0 +1,126 @@
+openapi: 3.0.1
+
+info:
+  title: Async API
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:9860
+    description: Development server
+
+paths:
+  # *******************************************************************************
+  #                                  Long pooling
+  # *******************************************************************************
+  /api/v1/async/events:
+    get:
+      summary: Get pending asynchronous responses
+      operationId: getAsyncRequest
+      tags:
+        - LongPolling
+      parameters:
+        - $ref: '#/components/parameters/authorizationHeader'
+        - $ref: '#/components/parameters/requestIdParamOptional'
+        - $ref: '#/components/parameters/timeoutParamOptional'
+        - $ref: '#/components/parameters/startTimeParamOptional'
+      responses:
+        '200':
+          description: List of responses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncResponsesDto'
+
+components:
+  parameters:
+
+    ### Header parameters ###
+    authorizationHeader:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+
+    ### Query parameters ###`
+
+    requestIdParamOptional:
+      in: query
+      name: requestId
+      required: false
+      schema:
+        type: string
+
+    timeoutParamOptional:
+      in: query
+      name: timeout
+      required: false
+      schema:
+        type: integer
+
+    startTimeParamOptional:
+      in: query
+      name: startTime
+      required: false
+      schema:
+        type: integer
+        format: int64
+
+  schemas:
+
+    ### DTOs ###
+
+    AsyncResponsesDto:
+      required:
+        - response
+      properties:
+        response:
+          type: array
+          items:
+            $ref: "#/components/schemas/AsyncResponseDto"
+
+    AsyncResponseDto:
+      required:
+        - isOk
+        - requestId
+        - requestTime
+        - responseTime
+      properties:
+        isOk:
+          type: boolean
+        requestId:
+          type: string
+        requestTime:
+          type: string
+          format: date-time
+        responseTime:
+          type: string
+          format: date-time
+        payload:
+          $ref: "#/components/schemas/ObjectNode"
+        error:
+          $ref: "#/components/schemas/ErrorDto"
+
+    ErrorDto:
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: "Error short name in the format: 'service.assertion_type.error_short_description'."
+        message:
+          type: string
+          description: Full error message.
+        args:
+          $ref: "#/components/schemas/JsonNode"
+
+    # Stubs
+
+    ObjectNode:
+      type: object
+      description: JSON object. Cannot be a array or literal.
+
+    JsonNode:
+      type: object
+      description: Any object (array, json object, etc)

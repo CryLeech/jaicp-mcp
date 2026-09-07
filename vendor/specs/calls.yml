@@ -1,0 +1,1099 @@
+openapi: 3.0.1
+info:
+  title: calls api
+  version: 1.10.0
+
+servers:
+  - description: JAICP cloud
+    url: https://app.jaicp.com
+  - description: Aimylogic cloud
+    url: https://app.aimylogic.com
+
+paths:
+  # ********************************************************************************
+  #                           ADDING PHONE NUMBERS METHODS
+  # ********************************************************************************
+  # region
+  /api/calls/campaign/{token}/addPhones:
+    post:
+      operationId: addPhones
+      summary: Add phone numbers to the call campaign specified by the campaign token
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+      requestBody:
+        description: List of phone numbers along with script parameters for each call
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallJobParametersList'
+      responses:
+        '200':
+          description: Successful response. List of call job IDs created for each phone number in campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallJobIDList'
+        '400':
+          description: |
+            Unsuccessful response. Phone numbers were not added to the call campaign.
+            The reason is specified in the `type` field:
+            1) type=="phone.duplicated": there are duplicated phone numbers in the phone list.
+            2) type=="phone.bad.format": phone number don't comply to regional format
+            3) type=="invalid.call.task.state": campaign is stopped.
+            4) type=="invalid.call.allowed.time": intervals must not overlap
+            5) type=="invalid.dialer_priority": the priority value must be an integer in the range between 1 and 5 inclusive
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PhoneErrorResponse'
+                  - $ref: '#/components/schemas/CampaignErrorResponse'
+                  - $ref: '#/components/schemas/DialerPriorityErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/crmCalls/campaign/{token}/addPhone:
+    get:
+      operationId: addPhoneGet
+      summary: Add phone number to the call campaign specified by the campaign token
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: "#/components/parameters/token"
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+        - in: query
+          required: true
+          name: phone
+          schema:
+            type: string
+        - in: query
+          required: false
+          name: gmtZone
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response. Call job ID created for phone number.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CallJobID"
+        '400':
+          description: |
+            Unsuccessful response. Phone number was not added to the call campaign.
+            The reason is specified in the `type` field:
+            1) type=="phone.duplicated": there are duplicated phone number in the phone list.
+            2) type=="phone.bad.format": phone number don't comply to regional format
+            3) type=="invalid.call.task.state": campaign is stopped.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PhoneErrorResponse'
+                  - $ref: '#/components/schemas/CampaignErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+    post:
+      operationId: addPhonePost
+      summary: Add phone number to the call campaign specified by the campaign token
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: "#/components/parameters/token"
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+      requestBody:
+        description: Script parameters for phone number
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: true
+              example:
+                phone:
+                  description: Phone number. Must comply to the country rules
+                  type: string
+                  example: "9991234567890"
+                gmtZone:
+                  description: Timezone ID. Optional parameter. Should be from -18:00 to +18:00 or be specified as name of zone according IANA TZBD (see list of timezone IDs https://docs.oracle.com/middleware/12212/wcs/tag-ref/MISC/TimeZones.html). If timezone parameter is empty, the dialer will make call at time of the phone number timezone.
+                  type: string
+                  example: "+03:30"
+      responses:
+        '200':
+          description: Successful response. Call job ID created for phone number.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CallJobID"
+        '400':
+          description: |
+            Unsuccessful response. Phone number was not added to the call campaign.
+            The reason is specified in the `type` field:
+            1) type=="phone.duplicated": there are duplicated phone number in the phone list.
+            2) type=="phone.bad.format": phone number don't comply to regional format
+            3) type=="invalid.call.task.state": campaign is stopped.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PhoneErrorResponse'
+                  - $ref: '#/components/schemas/CampaignErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/crmCalls/campaign/{token}/test/addPhone:
+    get:
+      operationId: addPhoneGetTest
+      summary: Test adding a phone number to the call campaign specified by the campaign token
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: "#/components/parameters/token"
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+        - in: query
+          required: true
+          name: phone
+          schema:
+            type: string
+        - in: query
+          required: false
+          name: gmtZone
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response. Call job ID created for phone number.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CallJobID"
+        '400':
+          description: |
+            Unsuccessful response. Phone number was not added to the call campaign.
+            The reason is specified in the `type` field:
+            1) type=="phone.duplicated": there are duplicated phone number in the phone list.
+            2) type=="phone.bad.format": phone number don't comply to regional format
+            3) type=="invalid.call.task.state": campaign is stopped.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PhoneErrorResponse'
+                  - $ref: '#/components/schemas/CampaignErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+  # endregion
+
+  # ********************************************************************************
+  #                  CANCELING PREVIOUSLY CREATED CALL JOBS METHODS
+  # ********************************************************************************
+  # region
+  /api/calls/campaign/{token}/callJob/cancel:
+    post:
+      operationId: cancelCallJob
+      summary: Cancel call jobs. The platform finishes ongoing calls but does not start new attempts
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+      requestBody:
+        description: A list of call job IDs and/or phone numbers to cancel.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallNumbersAndCallJobIds'
+      responses:
+        '200':
+          description: Successful response. Returns a list of canceled call job IDs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallJobIDList'
+        '400':
+          description: |
+            Unsuccessful response.
+            The reason is specified in the `type` field:
+            1) type=="id.not.found": call job id was not found in the campaign
+            2) type=="phone.not.found": phone was not found in the campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallNumbersAndCallJobIdsErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+  # endregion
+
+  # ********************************************************************************
+  #                             OBTAINING REPORTS METHODS
+  # ********************************************************************************
+  # region
+  /api/calls/campaign/{token}/callJob/getReport:
+    post:
+      operationId: getCallJobReport
+      summary: Get a report for specific call jobs
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        description: A list of call job IDs and/or phone numbers to include in the report.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallNumbersAndCallJobIds'
+      responses:
+        '200':
+          description: Successful response. Contains results for all requested call jobs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallJobReportList'
+        '400':
+          description: |
+            Unsuccessful response.
+            The reason is specified in the `type` field:
+            1) type=="id.not.found": call job id was not found in the campaign
+            2) type=="phone.not.found": phone was not found in the campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallNumbersAndCallJobIdsErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/calls/campaign/{token}/callJob/getReportByDate:
+    post:
+      operationId: getCallJobReportByDate
+      summary: Get a paginated list of call jobs, filtered by date
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        description: Parameters for date filtering and pagination.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallJobDatesWithPagination'
+      responses:
+        '200':
+          description: Successful response. Paginated list of call job reports.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallJobReportListWithPagination'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/calls/campaign/{token}/callJob/getUnfinished:
+    post:
+      operationId: getCallJobReportUnfinished
+      summary: Get a paginated list of unfinished call jobs (where finishedAt is null)
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        description: Pagination parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaginationRequest'
+      responses:
+        '200':
+          description: Successful response. Paginated list of call job reports.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallJobReportListWithPagination'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/calls/campaign/{token}/callAttempt/getReport:
+    post:
+      operationId: getCallAttemptReport
+      summary: Generate a report for specific call attempts
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        description: A list of phone numbers and/or call job IDs.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallNumbersAndCallJobIds'
+      responses:
+        '200':
+          description: Successful response. The result contains results of all call jobs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallAttemptReportList'
+        '400':
+          description: |
+            Unsuccessful response.
+            The reason is specified in the `type` field:
+            1) type=="id.not.found": call job id was not found in the campaign
+            2) type=="phone.not.found": phone was not found in the campaign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallNumbersAndCallJobIdsErrorResponse'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/calls/campaign/{token}/callAttempt/getReportByDate:
+    post:
+      operationId: getCallAttemptReportByDate
+      summary: Generate a paginated list of call attempts, filtered by date
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        description: Parameters for date filtering and pagination.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallAttemptDatesWithPagination'
+      responses:
+        '200':
+          description: Successful response. Paginated list of call attempt reports.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallAttemptReportListWithPagination'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+  # endregion
+
+  # ********************************************************************************
+  #                   RETRIEVING CALL CAMPAIGN INFORMATION METHODS
+  # ********************************************************************************
+  # region
+  /api/calls/campaign/{token}:
+    get:
+      operationId: getCallTask
+      summary: Get call campaign information
+      parameters:
+        - $ref: '#/components/parameters/token'
+      tags:
+        - PublicCallsApi
+      responses:
+        '200':
+          description: Call campaign information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallTaskByTokenData'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+
+  /api/calls/campaign/{token}/status:
+    get:
+      operationId: getCallTaskStatus
+      summary: Get call campaign status
+      parameters:
+        - $ref: '#/components/parameters/token'
+      tags:
+        - PublicCallsApi
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                $ref: 'common.yml/#/components/schemas/CallTaskStatusType'
+        '404':
+          description: Unsuccessful response. Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+  # endregion
+
+  # ********************************************************************************
+  #                   CONTROLLING CAMPAIGN METHODS
+  # ********************************************************************************
+  # region
+  /api/calls/campaign/{token}/control/{campaignControlAction}:
+    post:
+      operationId: controlCampaign
+      summary: Control campaign state (pause, resume, stop)
+      tags:
+        - PublicCallsApi
+      parameters:
+        - $ref: 'common.yml/#/components/parameters/idempotenceKey'
+        - $ref: '#/components/parameters/token'
+        - $ref: '#/components/parameters/campaignControlAction'
+      responses:
+        '200':
+          $ref: '#/components/schemas/EmptyResponse'
+        '400':
+          $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Campaign is not found (field `type` == "invalid.token")
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenErrorResponse'
+  # endregion
+
+components:
+  parameters:
+    token:
+      name: token
+      in: path
+      description: Campaign token.
+      required: true
+      schema:
+        type: string
+      example: 123.456.bAYxokdzmkWBZP2Tjcf4W0nzCpkC9L85mZQyd1OqJuv
+
+    campaignControlAction:
+      name: campaignControlAction
+      in: path
+      required: true
+      description: Campaign control action
+      schema:
+        type: string
+        enum:
+          - stop
+          - pause
+          - resume
+
+  schemas:
+    # ********************************************************************************
+    #                                     ENTITIES
+    # ********************************************************************************
+    # region
+
+    # NOTE CallJobID VS callJobId:
+    # - CallJobID: schema for response when API returns ID as a string (e.g.: "1234")
+    # - callJobId: field in objects where ID is part of the structure (e.g.: {"callJobId": "1234", ...})
+
+    CallJobID:
+      description: Call job ID
+      type: string
+
+    CallJobIDList:
+      description: List of call job IDs
+      type: array
+      items:
+        type: string
+      example: [1234,6543]
+
+    # ********************************************************************************
+    #                           ADDING PHONE NUMBERS ENTITIES
+    # ********************************************************************************
+    # region
+    CallJobParametersList:
+      description: List of CallJobParameters objects. The array must contain only unique phone numbers.
+      type: array
+      items:
+        $ref: '#/components/schemas/CallJobParameters'
+
+    CallJobParameters:
+      description: Script parameters for each phone number
+      required:
+        - phone
+      properties:
+        phone:
+          description: Phone number. Must comply to the country rules
+          type: string
+          example: "9991234567890"
+        payload:
+          description: Script parameters
+          type: object
+          example:
+            name: Alex
+            age: 34
+        startDateTime:
+          description: Desired call time. The dialer will be calling the phone number only in the interval [startDateTime, endDateTime]. Optional parameter. The startDateTime must be before the finishDateTime.
+          type: string
+          format: date-time
+          example: '2020-03-23T00:00:00Z'
+        finishDateTime:
+          description: The latest time to call. The dialer will never call to the phone number after finishDateTime. Optional parameter. The finishDateTime must be after startDateTime.
+          type: string
+          format: date-time
+          example: '2020-03-24T12:00:00Z'
+        allowedDays:
+          description: Allowed days of the week to call. If not specified the parameter will be inherited from the campaign parameters. Optional parameter.
+          type: array
+          items:
+            $ref: 'common.yml/#/components/schemas/DayOfWeek'
+          minItems: 1
+          maxItems: 7
+          example:
+            - sat
+            - sun
+        localTimeFrom:
+          deprecated: true
+          description: Earliest allowed hour to call. If not specified the parameter will be inherited from the campaign parameters. Optional parameter.
+          type: string
+          example: '10:00'
+        localTimeTo:
+          deprecated: true
+          description: Latest allowed hour to call. If not specified the parameter will be inherited from the campaign parameters. Optional parameter.
+          type: string
+          example: '19:30'
+        allowedTime:
+          $ref: 'common.yml/#/components/schemas/AllowedTime'
+        retryIntervalInMinutes:
+          description: Minimum retry interval between calls. If not specified the parameter will be inherited from the campaign parameters. Optional parameter.
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2880
+          example: 120
+        maxAttempts:
+          description: Maximum call attempts for the phone number. If not specified the parameter will be inherited from the campaign parameters. Optional parameter.
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+        gmtZone:
+          description: Timezone ID. Optional parameter. Should be from -18:00 to +18:00 or be specified as name of zone according IANA TZBD (see list of timezone IDs https://docs.oracle.com/middleware/12212/wcs/tag-ref/MISC/TimeZones.html). If timezone parameter is empty, the dialer will make call at time of the phone number timezone.
+          type: string
+          example: "+03:30"
+        dialerPriority:
+          description: Priority of the phone number. Should be a value between 1 (highest) and 5 (lowest).
+          type: integer
+          format: int32
+        externalCheck:
+          description: Options for extarnal check of callJob
+          $ref: "#/components/schemas/CallJobExternalCheck"
+
+    CallJobExternalCheck:
+      description: External check`s paramaters for call job
+      required:
+        - externalCheckUrl
+      properties:
+        externalCheckUrl:
+          description: URL for invocation external service for check. Should contain credentials token (generated by Security Manager service) for authentication with external service.
+          type: string
+          example: "https://dXNlcm5hbWU6cGFzc3dvcmQ=@somewhere.com/checkMyNumber"
+        externalCheckMaxRetries:
+          description: Number of maximum retries to check. Optional parameter. If not specified the value will be brought from contact-policy-check.default-max-check-attempts.
+          type: integer
+          format: int32
+    # endregion
+
+    # ********************************************************************************
+    #                            OBTAINING REPORTS ENTITIES
+    # ********************************************************************************
+    # region
+    CallNumbersAndCallJobIds:
+      description: Selection of phone numbers and call job IDs to generate a report
+      properties:
+        phones:
+          description: List of phone numbers
+          type: array
+          items:
+            type: string
+          example: [ "9991234567890","9991234567891" ]
+        ids:
+          description: List of call job IDs
+          type: array
+          items:
+            type: string
+          example: [ "1234","6543" ]
+
+    CallAttemptDatesWithPagination:
+      type: object
+      properties:
+        filter:
+          $ref: '#/components/schemas/CallAttemptDates'
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+
+    CallAttemptDates:
+      description: Parameters to filter call attempts by date
+      type: object
+      properties:
+        startedAtFrom:
+          description: Filter for call attempts started after this time.
+          type: string
+          format: date-time
+        startedAtTo:
+          description: Filter for call attempts started before this time.
+          type: string
+          format: date-time
+        finishedAtFrom:
+          description: Filter for call attempts finished after this time.
+          type: string
+          format: date-time
+        finishedAtTo:
+          description: Filter for call attempts finished before this time.
+          type: string
+          format: date-time
+
+    CallJobDatesWithPagination:
+      type: object
+      properties:
+        filter:
+          $ref: '#/components/schemas/CallJobDates'
+        pagination:
+          $ref: '#/components/schemas/PaginationRequest'
+
+    CallJobDates:
+      description: Parameters to filter call jobs by date
+      type: object
+      properties:
+        createdAtFrom:
+          description: Filter for call jobs created after this time.
+          type: string
+          format: date-time
+        createdAtTo:
+          description: Filter for call jobs created before this time.
+          type: string
+          format: date-time
+        finishedAtFrom:
+          description: Filter for call jobs finished after this time.
+          type: string
+          format: date-time
+        finishedAtTo:
+          description: Filter for call jobs finished before this time.
+          type: string
+          format: date-time
+
+    PaginationRequest:
+      type: object
+      properties:
+        page:
+          description: Page number to return (starts from 0).
+          type: integer
+          minimum: 0
+          maximum: 199
+          default: 0
+        pageSize:
+          description: Number of items per page.
+          type: integer
+          minimum: 1
+          maximum: 200
+          default: 20
+
+    CallJobReportListWithPagination:
+      description: Paginated list of call job reports
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          $ref: '#/components/schemas/CallJobReportList'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+
+    CallJobReportList:
+      description: List of call job reports
+      type: array
+      items:
+        $ref: '#/components/schemas/CallJobReport'
+
+    CallJobReport:
+      description: Call job report for a specific phone number
+      required:
+        - phone
+        - callJobId
+        - createdAt
+        - attemptsCount
+      properties:
+        callJobId:
+          description: Call job ID for this phone number
+          type: string
+          example: "1234"
+        redialNumber:
+          description: Phone number for the Сall job. If this is the first call job, then null, or else an integer. The numbering starts with 1.
+          type: integer
+          example:
+            - null
+            - 1
+            - 2
+        phone:
+          description: Phone number
+          type: string
+          example: "9991234567890"
+        attemptsCount:
+          description: Count of call attempts
+          type: integer
+          format: int64
+          example: 63
+        jobStatus:
+          description: Current call job status
+          $ref: "#/components/schemas/JobStatus"
+        createdAt:
+          description: Time of the creating call job (adding phone to the campaign), in unix milliseconds
+          type: string
+          format: 'date-time'
+          example: 1566570001055
+        finishedAt:
+          description: Time of the finishing call job, in unix milliseconds
+          type: string
+          format: 'date-time'
+          example: 1566570001055
+        tagName:
+          description: Tag name from the script block. Valid for AimyLogic scripts
+          type: string
+          example: hello_step
+        tagPayload:
+          description: Tag payload from the script. Valid for AimyLogic scripts. Contains custom keys and values
+          type: object
+          example:
+            surname: Bond
+        callDuration:
+          description: Time spent on the call, in seconds
+          type: integer
+          format: int64
+          example: 63
+        reportData:
+          description: |
+            Data recorded during all call attempts using reportData function. Example: dialer.reportData("name","Alex");dialer.reportData("age","34");
+          example:
+            name: Alex
+            age: 34
+          type: object
+
+    CallAttemptReportListWithPagination:
+      description: Paginated list of call attempt reports
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          $ref: '#/components/schemas/CallAttemptReportList'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+
+    CallAttemptReportList:
+      description: List of call attempt reports
+      type: array
+      items:
+        $ref: '#/components/schemas/CallAttemptReport'
+
+    CallAttemptReport:
+      description: Call attempt report for a specific phone number
+      required:
+        - phone
+        - callJobId
+        - attemptNumber
+      properties:
+        callJobId:
+          description: Call job ID for this phone number
+          type: string
+          example: "1234"
+        redialNumber:
+          description: Phone number for the Сall job. If this is the first call job, then null, or else an integer. The numbering starts with 1.
+          type: integer
+          example:
+            - null
+            - 1
+            - 2
+        phone:
+          description: Phone number
+          type: string
+          example: "9991234567890"
+        jobStatus:
+          description: Current call job status
+          $ref: "#/components/schemas/JobStatus"
+        callResult:
+          description: Call attempt result. Provided by setCallResult() function in script
+          type: string
+          example: "CALLBACK_REQUEST"
+        callDuration:
+          description: Time spent on the call, in seconds
+          type: integer
+          format: int64
+          example: 63
+        startedAt:
+          description: Talk start time, in unix milliseconds
+          type: string
+          format: 'date-time'
+          example: 1566569985830
+        finishedAt:
+          description: Talk end time, in unix milliseconds
+          type: string
+          format: 'date-time'
+          example: 1566570001055
+        attemptNumber:
+          description: The current call attempt number
+          type: integer
+          format: int32
+          example: 2
+        tagName:
+          description: Tag name from the script block. Valid for AimyLogic scripts
+          type: string
+          example: hello_step
+        tagPayload:
+          description: Tag payload from the script. Valid for AimyLogic scripts. Contains custom keys and values
+          type: object
+          example:
+            surname: Bond
+        reportData:
+          description: |
+            Data recorded during all call attempts using reportData function. Example: dialer.reportData("name","Alex");dialer.reportData("age","34");
+          example:
+            name: Alex
+            age: 34
+          type: object
+
+    PaginationResponse:
+      type: object
+      required:
+        - page
+        - pageSize
+      properties:
+        page:
+          description: Current page number
+          type: integer
+        pageSize:
+          description: Number of items per page
+          type: integer
+
+    JobStatus:
+      type: string
+      enum:
+        - longCallWithNoResult
+        - noAnswer
+        - planned
+        - notDone
+        - longCallWithResult
+        - inProcess
+        - onRetry
+        - cancelledByUser
+        - technicalError
+        - nonexistentNumber
+        - unknown
+    # endregion
+
+    # ********************************************************************************
+    #                   RETRIEVING CALL CAMPAIGN INFORMATION ENTITIES
+    # ********************************************************************************
+    # region
+    CallTaskByTokenData:
+      required:
+        - id
+        - name
+        - projectName
+        - creationDate
+        - botId
+        - status
+        - shortReport
+      properties:
+        id:
+          description: Campaign ID.
+          type: integer
+          format: int64
+        name:
+          description: Campaign name, set during creation.
+          type: string
+        projectName:
+          description: ID of the project where the campaign was created.
+          type: string
+        creationDate:
+          description: Campaign creation time (Unix time, in milliseconds).
+          type: string
+          format: date-time
+        botId:
+          description: Channel ID.
+          type: string
+        startTime:
+          description: Campaign start time (Unix time, in milliseconds).
+          type: string
+          format: date-time
+        endTime:
+          description: Campaign end time (Unix time, in milliseconds).
+          type: string
+          format: date-time
+        status:
+          $ref: 'common.yml/#/components/schemas/CallTaskStatusType'
+        maxSimultaneousCalls:
+          description: Number of simultaneous calls in the campaign.
+          type: integer
+        shortReport:
+          $ref: 'common.yml/#/components/schemas/CallTaskByTokenShortReportData'
+    # endregion
+    # endregion
+
+    # ********************************************************************************
+    #                                  ERROR RESPONSES
+    # ********************************************************************************
+    # region
+
+    TokenErrorResponse:
+      description: Error in campaign token
+      required:
+        - type
+        - message
+      properties:
+        type:
+          description: Always has the `invalid.token` value.
+          type: string
+          example: invalid.token
+        message:
+          type: string
+
+    EmptyResponse:
+      description: Ok
+
+    ErrorResponse:
+      description: Standard error response
+      content:
+        application/json:
+          schema:
+            $ref: 'common.yml/#/components/schemas/ApiErrorData'
+
+    # ********************************************************************************
+    #                       ADDING PHONE NUMBERS ERROR RESPONSES
+    # ********************************************************************************
+    # region
+    PhoneErrorResponse:
+      description: Error in adding phones to campaign due to phone number issues
+      required:
+        - phone
+        - type
+        - message
+      properties:
+        type:
+          description: |
+            The reason of the phone number error:
+            1) Invalid format – "phone.bad.format"
+            2) Phone number duplicated in call job – "phone.duplicated"
+          type: string
+          example: phone.bad.format
+        phone:
+          type: string
+          example: "9991234567890"
+        phonesDuplicates:
+          type: array
+          items:
+            type: string
+          example: [ "9991234567890","9991234567891" ]
+        message:
+          type: string
+
+    DialerPriorityErrorResponse:
+      description: Error in adding phones to campaign due to dialer_priority issues
+      required:
+        - type
+        - message
+      properties:
+        type:
+          type: string
+          example: invalid.dialer_priority
+        message:
+          type: string
+
+    CampaignErrorResponse:
+      description: Error in adding phones to call campaign due to it's finished status
+      required:
+        - state
+        - type
+        - message
+      properties:
+        type:
+          description: Always has value "invalid.call.task.state"
+          type: string
+          example: invalid.call.task.state
+        state:
+          description: Campaign status specified by token
+          type: string
+          example: FINISHED
+        message:
+          type: string
+    # endregion
+
+    CallNumbersAndCallJobIdsErrorResponse:
+      description: Error in report request
+      required:
+        - type
+        - message
+      properties:
+        type:
+          description: Error code. "id.not.found" — call job ID not found; "phone.not.found" — phone number not found.
+          type: string
+          example: id.not.found
+        message:
+          type: string
+
+    TimezoneErrorResponse:
+      description: Error in adding phones to campaign due to timezone issues
+      required:
+        - type
+        - phone
+        - gmtZone
+        - message
+      properties:
+        type:
+          description: |
+            The reason of the timezone error: invalid format – "phone.gmtZone.bad.format"
+          type: string
+          example: phone.gmtZone.bad.format
+        phone:
+          type: string
+          example: "9991234567890"
+        gmtZone:
+          type: string
+          example: ["+03:00","Europe/Moscow"]
+        message:
+          type: string
+
+    # endregion

@@ -1,0 +1,40 @@
+{
+  "name": "jaicp-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for JAICP / Conversational Cloud HTTP APIs, driven by official OpenAPI specs",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "jaicp-mcp": "./src/server.mjs"
+  },
+  "files": [
+    "src",
+    "vendor/specs",
+    "scripts",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "NOTICE.md",
+    ".env.example"
+  ],
+  "scripts": {
+    "start": "node src/server.mjs",
+    "ops": "node src/openapi.mjs --print",
+    "sync-specs": "pwsh -File scripts/sync-specs.ps1"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "jaicp",
+    "just-ai",
+    "conversational-cloud"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "yaml": "^2.8.1",
+    "zod": "^3.24.0"
+  }
+}

@@ -1,0 +1,1707 @@
+openapi: 3.0.0
+info:
+  title: CAILA REST API
+  version: 1.12.1
+
+tags:
+  - name: Inference
+    description: Main service operations - markup, predict etc.
+
+servers:
+  - url: https://app.jaicp.com/cailapub
+
+paths:
+
+  # *******************************************************************************
+  #                           Inference
+  # *******************************************************************************
+
+  /api/caila/p/{accessToken}/nlu/markup:
+    get:
+      tags:
+        - Inference
+      description: Creates initial markup. Markup properties (spelling correction and language) are defined in project settings.
+      operationId: initialMarkup
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: query
+          in: query
+          description: Query text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Markup result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitialMarkupData'
+
+  /api/caila/p/{accessToken}/nlu/conform:
+    get:
+      tags:
+        - Inference
+      description: Creates initial markup. Markup properties (spelling correction and language) are defined in project settings.
+      operationId: conform
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: text
+          in: query
+          description: Text to conform with number.
+          required: true
+          schema:
+            type: string
+        - name: number
+          in: query
+          description: Number to conform with.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Conformed text.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/caila/p/{accessToken}/nlu/inflect:
+    get:
+      tags:
+        - Inference
+      description: Creates initial markup. Markup properties (spelling correction and language) are defined in project settings.
+      operationId: inflect
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: dict
+          in: query
+          description: Version of pymorphy dictionary.
+          required: false
+          schema:
+            type: string
+        - name: text
+          in: query
+          description: Text to inflect.
+          required: true
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: |
+            Tags for grammemes which the inflected text should have.
+            Tags for inflecting Russian words should follow the [pymorphy2 notation](https://pymorphy2.readthedocs.io/en/stable/user/grammemes.html).
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Inflected text.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/caila/p/{accessToken}/nlu/detectlanguage:
+    post:
+      tags:
+        - Inference
+      description: Detects language for each element of incoming collection
+      operationId: detectLanguage
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetectLanguageRequestData'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+
+  /api/caila/p/{accessToken}/nlu/inference:
+    get:
+      tags:
+        - Inference
+      description: Simple inference method. Do classification and slot filling with minimum input parameters.
+      operationId: simpleInference
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/query'
+        - $ref: '#/components/parameters/timezone'
+        - $ref: '#/components/parameters/reftime'
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: Inference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferenceResultData'
+
+    post:
+      tags:
+        - Inference
+      description: Full inference method. Do classification and slot filling. You could pass additional markup here.
+      operationId: inference
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/timezone'
+        - $ref: '#/components/parameters/reftime'
+      requestBody:
+        description: NLU inference request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InferenceRequestData'
+      responses:
+        '200':
+          description: Inference result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InferenceResultsData'
+
+  /api/caila/p/{accessToken}/nlu/inference-multiple:
+    post:
+      tags:
+        - Inference
+      description: Full inference method for batch processing. Do classification and slot filling. You could pass additional markup here.
+      operationId: inferenceMultiple
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/timezone'
+        - $ref: '#/components/parameters/reftime'
+      requestBody:
+        description: NLU inference request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InferenceMultipleRequestData'
+      responses:
+        '200':
+          description: Inference result.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InferenceResultsData'
+
+
+  /api/caila/p/{accessToken}/nlu/entities:
+    get:
+      tags:
+        - Inference
+      description: Method for findind named entities in a given text.
+      operationId: entitiesLookup
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/timezone'
+        - $ref: '#/components/parameters/reftime'
+        - $ref: '#/components/parameters/query'
+        - name: showAll
+          in: query
+          description: Don't apply conflict resolution, return all entities that are found. Several entities for single word could be returned.
+          required: true
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: Entity lookup result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhraseMarkupData'
+
+  /api/caila/p/{accessToken}/nlu/analyze:
+    post:
+      tags:
+        - Inference
+      description: Method for finding named entities in a given text. Performs three operations at once (by operationId) - initialMarkup, entitiesLookup and inference.
+      operationId: analyze
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/timezone'
+        - $ref: '#/components/parameters/reftime'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequestData'
+      responses:
+        '200':
+          description: Entity lookup result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponseData'
+
+  # *******************************************************************************
+  #                           Projects
+  # *******************************************************************************
+
+  /api/caila/p/{accessToken}/export:
+    post:
+      summary: Export all project data.
+      operationId: exportProject
+      tags:
+        - Projects
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      responses:
+        '200':
+          description: Project data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectExportImportData'
+
+  /api/caila/p/{accessToken}/import:
+    post:
+      summary: Import all project data.
+      operationId: importProject
+      tags:
+        - Projects
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectExportImportData'
+      responses:
+        '200':
+          description: Project is updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectExportImportData'
+
+  # *******************************************************************************
+  #                           Entities
+  # *******************************************************************************
+
+  /api/caila/p/{accessToken}/entities:
+    get:
+      tags:
+        - Entities
+      summary: List project entities.
+      operationId: listEntities
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: withRecordsCount
+          in: query
+          description: Add records count to entites in list
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: List of entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedEntityData'
+    post:
+      tags:
+        - Entities
+      summary: Create new entity
+      operationId: createEntity
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        description: New entities
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedEntityData'
+      responses:
+        '201':
+          description: Created entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityData'
+
+  /api/caila/p/{accessToken}/entities/delete-multiple:
+    post:
+      tags:
+        - Entities
+      summary: Delete a list of entities.
+      operationId: deleteEntities
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        description: List of entities ID's.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '204':
+          description: Entities are deleted.
+
+  /api/caila/p/{accessToken}/entities/{entityId}:
+    get:
+      tags:
+        - Entities
+      summary: Get named entity.
+      operationId: getEntity
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+      responses:
+        '200':
+          description: Entity description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityData'
+    put:
+      tags:
+        - Entities
+      summary: Update named entity
+      operationId: updateEntity
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+      requestBody:
+        description: New entities
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedEntityData'
+      responses:
+        '200':
+          description: Created entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityData'
+
+  /api/caila/p/{accessToken}/entities/{entityId}/records:
+    get:
+      tags:
+        - Entities
+      summary: Get named entity dictionary records
+      operationId: getEntityRecords
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+
+        - $ref: '#/components/parameters/searchQuery'
+
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: Entity content.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordsData'
+    post:
+      tags:
+        - Entities
+      summary: Create new entity record
+      operationId: createEntityRecord
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+      requestBody:
+        description: New record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNamedEntityRecordData'
+      responses:
+        '201':
+          description: Created entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordData'
+    put:
+      tags:
+        - Entities
+      summary: Update content of the entity all at once.
+      operationId: updateAllEntityRecords
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+      requestBody:
+        description: New entity records list.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAllNamedEntityRecordData'
+      responses:
+        '200':
+          description: List of newly uploaded entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities/{entityId}/records/delete-multiple:
+    post:
+      tags:
+        - Entities
+      summary: Delete multiple records
+      operationId: deleteRecords
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+        - $ref: '#/components/parameters/clientId'
+      requestBody:
+        description: Record IDs to be deleted
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '204':
+          description: Deleted.
+
+  /api/caila/p/{accessToken}/entities/{entityId}/records/upload:
+    post:
+      tags:
+        - Entities
+      summary: Upload records from file
+      operationId: uploadRecords
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+        - in: query
+          required: true
+          name: type
+          schema:
+            type: string
+            enum: ["zb-csv"]
+      requestBody:
+        description: CSV file with named entity records
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Entity description
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities/{entityId}/records/{recordId}:
+    put:
+      tags:
+        - Entities
+      summary: Update entity record
+      operationId: updateEntityRecord
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityId'
+        - $ref: '#/components/parameters/recordId'
+      requestBody:
+        description: New record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNamedEntityRecordData'
+      responses:
+        '200':
+          description: Updated entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities-by-name/{entityName}:
+    get:
+      tags:
+        - Entities
+      summary: Get entity with records by name
+      operationId: getEntityByName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: Entity description
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityWithRecordsData'
+
+  /api/caila/p/{accessToken}/entities-by-names/{entityName}/records:
+    get:
+      tags:
+        - Entities
+      summary: Get named entity dictionary records
+      operationId: getEntityRecordsByEntityName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+
+        - $ref: '#/components/parameters/searchQuery'
+
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: Entity content.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordsData'
+    post:
+      tags:
+        - Entities
+      summary: Create new entity record
+      operationId: createEntityRecordByEntityName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+      requestBody:
+        description: New record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNamedEntityRecordData'
+      responses:
+        '201':
+          description: Created entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities-by-names/{entityName}/records/delete-multiple:
+    post:
+      tags:
+        - Entities
+      summary: Delete multiple records
+      operationId: deleteRecordsByEntityName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+        - $ref: '#/components/parameters/clientId'
+      requestBody:
+        description: Record IDs to be deleted
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '204':
+          description: Deleted.
+
+  /api/caila/p/{accessToken}/entities-by-names/{entityName}/records/{recordId}:
+    put:
+      tags:
+        - Entities
+      summary: Update entity record
+      operationId: updateEntityRecordByEntityName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+        - $ref: '#/components/parameters/recordId'
+      requestBody:
+        description: New record
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNamedEntityRecordData'
+      responses:
+        '200':
+          description: Updated entity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities-by-name/{entityName}/records:
+    put:
+      tags:
+        - Entities
+      summary: Update content of the entity all at once.
+      operationId: updateAllEntityRecordsByEntityName
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/entityName'
+      requestBody:
+        description: New entity records list.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAllNamedEntityRecordData'
+      responses:
+        '200':
+          description: List of newly uploaded entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedEntityRecordData'
+
+  /api/caila/p/{accessToken}/entities/delete-multiple-by-name:
+    post:
+      tags:
+        - Entities
+      summary: Delete a list of entities.
+      operationId: deleteEntitiesByNames
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        description: List of entities names.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '204':
+          description: Entities are deleted.
+
+  /api/caila/p/{accessToken}/entities/get-by-names:
+    get:
+      tags:
+        - Entities
+      summary: Get entities by names.
+      operationId: getEntitiesByNames
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: names
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: List of entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedEntityData'
+
+
+  # *******************************************************************************
+  #                           Train
+  # *******************************************************************************
+
+  /api/caila/p/{accessToken}/nlu/train:
+    post:
+      tags:
+        - Training
+      description: Train nlu model
+      operationId: trainNLU
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: incremental
+          in: query
+          description: Incremental training. Retrain only changed parts. E.g. if only one named entity was changed - only this entity will be recreated, but classifier model will stay the same.
+          required: false
+          schema:
+            type: boolean
+            default: true
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      responses:
+        '200':
+          description: Train started.
+
+  /api/caila/p/{accessToken}/nlu/status:
+    get:
+      tags:
+        - Training
+      description: Train nlu model
+      operationId: getNLUStatus
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      responses:
+        '200':
+          description: Train started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NLUStatusData'
+
+  # *******************************************************************************
+  #                           Speller
+  # *******************************************************************************
+
+  /api/caila/p/{accessToken}/speller:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      tags:
+        - Speller
+      operationId: getSpellerDictionary
+      responses:
+        '200':
+          description: TSV (tab '\t' separated values) delimited by new line '\n'.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: dog\t-1\ncat\t1
+    post:
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      tags:
+        - Speller
+      operationId: uploadSpellerDictionary
+      requestBody:
+        required: true
+        description: TSV (tab '\t' separated values) delimited by new line '\n'.
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  example: dog\t-1\ncat\t1
+      responses:
+        '200':
+          description: Speller is updated.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # *******************************************************************************
+  #                           Intents
+  # *******************************************************************************
+  /api/caila/p/{accessToken}/intents:
+    get:
+      tags:
+        - Intents
+      summary: List project intents.
+      operationId: listIntents
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      responses:
+        '200':
+          description: List of intents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IntentSummaryData'
+
+    post:
+      tags:
+        - Intents
+      summary: Create a single intent.
+      operationId: createIntent
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      requestBody:
+        description: New intent
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentData'
+      responses:
+        '201':
+          description: Newly created intent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentData'
+
+  /api/caila/p/{accessToken}/intents/{intentId}:
+    get:
+      tags:
+        - Intents
+      summary: Get single intent.
+      operationId: getIntent
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/intentId'
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      responses:
+        '200':
+          description: Intent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentData'
+
+  /api/caila/p/{accessToken}/intents/delete-multiple:
+    post:
+      tags:
+        - Intents
+      summary: Delete a list of intents.
+      operationId: deleteIntents
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      requestBody:
+        description: List of intents ID's.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '204':
+          description: Intents are deleted.
+
+  /api/caila/p/{accessToken}/intents/get-by-paths:
+    post:
+      tags:
+        - Intents
+      summary: Filter project intents.
+      operationId: getIntentsByPaths
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - name: paths
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: List of intents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IntentData'
+
+  /api/caila/p/{accessToken}/intents/delete-multiple-by-paths:
+    post:
+      tags:
+        - Intents
+      summary: Delete a list of intents.
+      operationId: deleteMultipleByPaths
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        description: List of intents paths.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '204':
+          description: Intents are deleted.
+
+  /api/caila/p/{accessToken}/intents/{intentId}/recursive-update:
+    post:
+      tags:
+        - Intents
+      summary: Update intent and all its children intents.
+      operationId: recursiveUpdate
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/intentId'
+        - $ref: '#/components/parameters/logLabelingIdInQuery'
+      requestBody:
+        description: Intent body
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentData'
+      responses:
+        '200':
+          description: List of intents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentRecursiveUpdateData'
+
+
+  /api/caila/p/{accessToken}/intents/search:
+    post:
+      tags:
+        - Intents
+      summary: Ignore-case search for entities by path, description, answer, phrases, slots(all fields). Results are combined by each search criteria using OR.
+      operationId: searchIntents
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      requestBody:
+        description: Search criteria
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentsSearchCriteria'
+      responses:
+        '200':
+          description: List of intents. At first place entities with matching in entity name.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IntentSummaryData'
+
+  /api/caila/p/{accessToken}/intents/import:
+    post:
+      tags:
+        - Intents
+      summary: Import intents from wile with specified strategy.
+      operationId: importIntents
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+        - $ref: '#/components/parameters/importFileStrategy'
+      requestBody:
+        description: JSON with intents to import. Accepts examplesJson (legacy format) or intentsJson
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: List of intents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IntentSummaryData'
+
+  /api/caila/p/{accessToken}/intents/export-file:
+    get:
+      tags:
+        - Intents
+      summary: Export all project intents
+      operationId: exportIntents
+      parameters:
+        - $ref: '#/components/parameters/accessToken'
+      responses:
+        '200':
+          description: List of intents.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+components:
+  parameters:
+    query:
+      name: query
+      in: query
+      description: Phrase for process or search
+      required: true
+      schema:
+        type: string
+    timezone:
+      name: Z-timezone
+      in: header
+      description: Client timezone. This parameter is optional. If it is not specified, then project timezone is used. If project timezone is not specified, then server timezone is used.
+      schema:
+        type: string
+    reftime:
+      name: Z-refTime
+      in: header
+      description: Current time for tests. It is used in processing of time-dependent entities (such as duckling.time) for understanding of phrases like "now" or "tomorrow".
+      schema:
+        type: integer
+        format: int64
+    accessToken:
+      in: path
+      required: true
+      name: accessToken
+      schema:
+        type: string
+    logLabelingIdInQuery:
+      name: logLabelingSessionId
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int64
+    entityId:
+      name: entityId
+      in: path
+      description: Entity identifier.
+      required: true
+      schema:
+        type: integer
+        format: int64
+    intentId:
+      name: intentId
+      in: path
+      description: Intent identifier.
+      required: true
+      schema:
+        type: integer
+        format: int64
+    recordId:
+      name: recordId
+      in: path
+      description: Record identifier.
+      required: true
+      schema:
+        type: integer
+        format: int64
+    page:
+      in: query
+      name: page
+      description: Page.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    size:
+      in: query
+      name: size
+      description: Maximum number of items to return.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 20
+    searchQuery:
+      allowEmptyValue: true
+      required: false
+      name: searchQuery
+      in: query
+      description: Search query to filter entity records
+      schema:
+        type: string
+    entityName:
+      name: entityName
+      in: path
+      description: Entity unique name.
+      required: true
+      schema:
+        type: string
+    clientId:
+      name: clientId
+      in: query
+      description: Client identifier.
+      required: false
+      schema:
+        type: string
+    importFileStrategy:
+      in: query
+      required: true
+      name: strategy
+      schema:
+        $ref: '#/components/schemas/ImportFileStrategy'
+  schemas:
+    Pagination:
+      required:
+        - pageNum
+        - pageSize
+        - totalCount
+      properties:
+        pageNum:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+          format: int64
+
+    SlotData:
+      description: It's an experimental structure for slot-filling configuration
+      properties:
+        name:
+          description: Slot (variable) name.
+          type: string
+        entity:
+          description: Entity (type) name.
+          type: string
+        required:
+          description: Is this slot require fot this intent.
+          type: boolean
+        prompts:
+          description: Promts list to use as a questions to request a value
+          type: array
+          items:
+            type: string
+        array:
+          description: If slots are considered as array, parseTree value will contain list of values for this slot. False - only first value will be shown.
+          type: boolean
+          default: false
+
+    DetectLanguageRequestData:
+      properties:
+        documents:
+          type: array
+          items:
+            type: string
+
+    PhraseMarkupData:
+      properties:
+        text:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntityMarkupData'
+        stagedPhraseIdx:
+          type: integer
+        phraseMarkup:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordMarkupData'
+
+    InitialMarkupData:
+      properties:
+        source:
+          type: string
+        correctedText:
+          type: string
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/WordMarkupData'
+      required:
+        - source
+        - correctedText
+        - words
+
+    WordMarkupData:
+      properties:
+        annotations:
+          type: object
+          properties:
+            lemma:
+              type: string
+            pos:
+              type: string
+        startPos:
+          type: integer
+        endPos:
+          type: integer
+        pattern:
+          type: boolean
+        punctuation:
+          type: boolean
+        source:
+          type: string
+        word:
+          type: string
+
+    AnalyzeRequestData:
+      properties:
+        data:
+          $ref: '#/components/schemas/InferenceRequestData'
+        showAll:
+          description: Don't apply conflict resolution, return all entities that are found. Several entities for single word could be returned.
+          type: boolean
+        timeout:
+          description: Time threshold for analyzing in ms (milliseconds). If exceeded, send response with corresponding message.
+          type: integer
+
+    AnalyzeResponseData:
+      properties:
+        markup:
+          $ref: '#/components/schemas/InitialMarkupData'
+        entitiesLookup:
+          $ref: '#/components/schemas/PhraseMarkupData'
+        inference:
+          $ref: '#/components/schemas/InferenceResultsData'
+
+    EntityMarkupData:
+      properties:
+        entity:
+          description: Entity name (type). Must correspond to the one of the enabled entity in a project
+          type: string
+        slot:
+          description: Slot (variable) name. Must correspond to one of intent's slots
+          type: string
+        startPos:
+          description: Start position in source string inclusive
+          type: integer
+        endPos:
+          description: End position in source string exclusive
+          type: integer
+        text:
+          description: Source text for the entity. Is a substring of source phrase from StartPos till EndPos
+          type: string
+        value:
+          description: Associated value
+          type: string
+        default:
+          description: Is this entity selected as a most probable entity for this position
+          type: boolean
+        system:
+          description: Is this entity system. False means that it is user custom entity
+          type: boolean
+        entityId:
+          description: Entity ID.
+          type: integer
+          format: int64
+
+
+    KnownSlotData:
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        array:
+          description: If slots are considered as array, parseTree value will contain list of values for this slot. False - only first value will be shown.
+          type: boolean
+          default: false
+
+    InferenceMultipleRequestData:
+      properties:
+        phrases:
+          type: array
+          items:
+            $ref: '#/components/schemas/InferenceRequestPhrasesAndSlots'
+        nBest:
+          type: integer
+          default: 1
+        showDebugInfo:
+          type: boolean
+          default: false
+
+    InferenceRequestPhrasesAndSlots:
+      properties:
+        phrase:
+          # We could pass source text along with additional entity markup
+          $ref: '#/components/schemas/PhraseMarkupData'
+        knownSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnownSlotData'
+
+    InferenceRequestData:
+      properties:
+        phrase:
+          # We could pass source text along with additional entity markup
+          $ref: '#/components/schemas/PhraseMarkupData'
+        knownSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnownSlotData'
+        nBest:
+          type: integer
+          default: 1
+        showDebugInfo:
+          type: boolean
+          default: false
+        clientId:
+          type: string
+
+    InferenceResultsData:
+      properties:
+        phrase:
+          $ref: '#/components/schemas/PhraseMarkupData'
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/InferenceResultData'
+
+    IntentResultData:
+      properties:
+        id:
+          type: integer
+          format: int64
+        path:
+          type: string
+        answer:
+          type: string
+        customData:
+          type: string
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotData'
+
+    InferenceResultData:
+      properties:
+        intent:
+          $ref: '#/components/schemas/IntentResultData'
+        confidence:
+          type: number
+          format: double
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnownSlotData'
+        debug:
+          type: object
+
+    NLUStatusData:
+      properties:
+        trainingStatus:
+          type: string
+          enum:
+            - NONE
+            - TRAINING
+            - READY
+            - FAILED
+        lastError:
+          type: string
+        lastChangeInIntents:
+          type: string
+          format: date-time
+        lastChangeInEntities:
+          type: string
+          format: date-time
+        lastModelTrainStart:
+          type: string
+          format: date-time
+        lastModelTrainTime:
+          type: string
+          format: date-time
+        cachedModelTrainStart:
+          type: string
+          format: date-time
+        cachedModelTrainTime:
+          type: string
+          format: date-time
+
+    ProjectExportImportData:
+      properties:
+        project:
+          $ref: '#/components/schemas/ProjectData'
+        settings:
+          $ref: '#/components/schemas/ProjectSettingsData'
+        intents:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntentData'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamedEntityWithRecordsData'
+        enabledSystemEntities:
+          type: array
+          items:
+            type: string
+
+    ProjectData:
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        folder:
+          type: string
+
+    ProjectSettingsData:
+      properties:
+        language:
+          type: string
+          default: ru
+        spellingCorrection:
+          type: boolean
+          default: false
+        classificationAlgorithm:
+          type: string
+          enum:
+            - sts
+            - regression
+            - deeplearning
+          default: sts
+        timezone:
+          type: string
+          default: Europe/Moscow
+        extendedSettings:
+          $ref: '#/components/schemas/ExtendedProjectSettings'
+
+    IntentData:
+      properties:
+        id:
+          type: integer
+          format: int64
+        path:
+          type: string
+        description:
+          type: string
+        answer:
+          type: string
+        customData:
+          description: Any custom data attached to the intent. application/json type.
+          type: string
+        enabled:
+          type: boolean
+        phrases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhraseMarkupData'
+        patterns:
+          type: array
+          items:
+            type: string
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotData'
+
+    NamedEntityWithRecordsData:
+      # It is better to use allOf here, but it causes NPE in generator
+      properties:
+        entity:
+          $ref: '#/components/schemas/NamedEntityData'
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamedEntityRecordData'
+
+    NamedEntityData:
+      required:
+        - name
+        - type
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          description: Name of the entity. Will be accessible as @<name> in patterns and phrase examples.
+          type: string
+        enabled:
+          description: Wheter this entity enabled or not
+          type: boolean
+          default: true
+        type:
+          $ref: '#/components/schemas/NamedEntityType'
+        priority:
+          description: It is a special field for manual conflict resolution, when some entitie handles one piece of text
+          type: integer
+        #        converter:
+        #          description: Script to run against the found record
+        #          type: string
+        noSpelling:
+          description: Disable automatic spelling correction for the entity. If enabled it means that entity extraction will be proceeded before spelling correction
+          type: boolean
+          default: false
+        noMorph:
+          description: Disable morphological insensitivity for the entity. If enabled it means that synonyms matching will be proceeded with exact text matching. So 'write' and 'wrote' will be a different words.
+          type: boolean
+          default: false
+        phoneticSearch:
+          type: boolean
+          default: false
+        fuzzySearch:
+          type: boolean
+          default: false
+        client:
+          type: boolean
+          default: false
+
+    NamedEntityType:
+      description: Type of the named entity. Dictionary - for rules and dictionaries and Annotation - for ML-based entities.
+      type: string
+      enum:
+        - dictionary
+        - annotation
+
+    ExtendedProjectSettings:
+      type: object
+      properties:
+        patternsEnabled:
+          type: boolean
+          description: Enable or disable patterns in intents.
+          default: true
+        tokenizerEngine:
+          type: string
+          default: udpipe
+          description: Option to set custom tokenizer for project
+        stsSettings:
+          type: object
+          description: Stringified settings for sts classifier
+        mlpsClassifierSettings:
+          type: object
+          description: Stringified settings for mlps classifiers
+
+    NamedEntityRecordsData:
+      required:
+        - paging
+        - records
+      properties:
+        paging:
+          $ref: '#/components/schemas/Pagination'
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamedEntityRecordData'
+
+    NamedEntityRecordType:
+      type: string
+      enum:
+        - pattern
+        - synonyms
+
+    CreateNamedEntityRecordData:
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/NamedEntityRecordData'
+        clientId:
+          type: string
+
+    UpdateAllNamedEntityRecordData:
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NamedEntityRecordData'
+        clientId:
+          type: string
+
+    UpdateNamedEntityRecordData:
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/NamedEntityRecordData'
+        clientId:
+          type: string
+
+    NamedEntityRecordData:
+      required:
+        - type
+        - rule
+        - value
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          $ref: '#/components/schemas/NamedEntityRecordType'
+        rule:
+          type: array
+          items:
+            type: string
+        value:
+          description: Value associated with the entity. Usually it is a string, number or json object
+          type: string
+        clientId:
+          type: string
+
+    IntentSummaryData:
+      properties:
+        id:
+          type: integer
+          format: int64
+        path:
+          type: string
+        enabled:
+          type: boolean
+        itemsCount:
+          type: integer
+        stagedPhrases:
+          type: array
+          items:
+            type: integer
+
+    IntentRecursiveUpdateData:
+      properties:
+        updatedIntent:
+          $ref: '#/components/schemas/IntentData'
+        affectedRecords:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntentSummaryData'
+
+    IntentsSearchCriteria:
+      properties:
+        path:
+          type: string
+          description: substring of intent path, ignore-case search
+        description:
+          type: string
+          description: substring of intent description, ignore-case search
+        answer:
+          type: string
+          description: substring of intent answer, ignore-case search
+        phrases:
+          type: string
+          description: substring of intent phrase, ignore-case search
+        slots:
+          type: string
+          description: substring of intent slot, ignore-case search
+
+    ImportFileStrategy:
+      description: Strategy to resolve confilcs on import
+      type: string
+      enum:
+        - overwrite
+        - merge
+        - unresolved
+        - cleanwrite
+        - skipwrite
